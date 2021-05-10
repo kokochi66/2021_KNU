@@ -9,6 +9,8 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.databinding.ActivityMainBinding
+import com.capston.ocrwordbook.ui.camera.CameraFragment
+import com.capston.ocrwordbook.ui.word.WordFragment
 
 
 class MainActivity : AppCompatActivity() {
@@ -19,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
 
-         //DataBindingUtil.setContentView(this,R.layout.activity_main)
+        //DataBindingUtil.setContentView(this,R.layout.activity_main)
         binding = DataBindingUtil.setContentView(this ,R.layout.activity_main)
 
         binding.mainLinearOcr.setOnClickListener {
@@ -28,6 +30,8 @@ class MainActivity : AppCompatActivity() {
         binding.mainLinearWords.setOnClickListener {
             SwitchingWords()
         }
+
+        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment()).commit()
 
 
 
@@ -46,6 +50,8 @@ class MainActivity : AppCompatActivity() {
        binding.mainBarOcr.visibility = View.VISIBLE
        binding.mainImageOcr.setImageResource(R.drawable.add_photo_white)
        binding.mainTextOcr.setTextColor(resources.getColor(R.color.white_text, null))
+
+        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment()).commit()
     }
 
 
@@ -58,6 +64,6 @@ class MainActivity : AppCompatActivity() {
         binding.mainImageWords.setImageResource(R.drawable.word_list_white)
         binding.mainTextWords.setTextColor(resources.getColor(R.color.white_text, null))
 
-
+        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, WordFragment()).commit()
     }
 }

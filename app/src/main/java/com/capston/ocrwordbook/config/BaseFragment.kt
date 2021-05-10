@@ -16,6 +16,9 @@ abstract class BaseFragment<B : ViewDataBinding, VM : ViewModel>(private val lay
     // Data Binding
     lateinit var binding: B
 
+    // View Model
+    abstract var viewModel: VM
+
 
     // Loading Dialog
     //private var mLoadingDialog: LoadingDialog? = context?.let { LoadingDialog(it) }
