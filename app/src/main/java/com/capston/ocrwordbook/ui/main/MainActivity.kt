@@ -1,28 +1,40 @@
 package com.capston.ocrwordbook.ui.main
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Layout
 import android.view.View
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
+import androidx.lifecycle.LifecycleOwner
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.databinding.ActivityMainBinding
 import com.capston.ocrwordbook.ui.camera.CameraFragment
+import com.capston.ocrwordbook.ui.result.ResultActivity
+import com.capston.ocrwordbook.ui.result.ResultViewModel
 import com.capston.ocrwordbook.ui.word.WordFragment
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    var viewModel: MainViewModel = MainViewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(android.R.style.Theme_NoTitleBar)
         super.onCreate(savedInstanceState)
 
-
-        //DataBindingUtil.setContentView(this,R.layout.activity_main)
         binding = DataBindingUtil.setContentView(this ,R.layout.activity_main)
+        binding.viewModel = viewModel
+
+
+        MainViewModel.onSaved.observe({ lifecycle }) {
+            val intent = Intent(this, ResultActivity::class.java)
+            startActivity(intent)
+        }
+
+
 
         binding.mainLinearOcr.setOnClickListener {
             SwitchingOcr()
@@ -50,6 +62,7 @@ class MainActivity : AppCompatActivity() {
        binding.mainBarOcr.visibility = View.VISIBLE
        binding.mainImageOcr.setImageResource(R.drawable.add_photo_white)
        binding.mainTextOcr.setTextColor(resources.getColor(R.color.white_text, null))
+
 
         this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment()).commit()
     }
