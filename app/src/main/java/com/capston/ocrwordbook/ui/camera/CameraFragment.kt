@@ -1,38 +1,31 @@
 package com.capston.ocrwordbook.ui.camera
 
-import android.content.Context
-import android.graphics.SurfaceTexture
-import android.hardware.camera2.CameraManager
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
-import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
-import androidx.camera.core.ImageCapture
+import android.widget.Toast
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.databinding.DataBindingUtil
+import androidx.core.content.ContextCompat
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.config.BaseFragment
 import com.capston.ocrwordbook.databinding.FragmentCameraBinding
-import java.io.File
-import java.util.concurrent.ExecutorService
-import androidx.appcompat.app.AppCompatActivity
-import android.Manifest
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.widget.Toast
-import androidx.core.content.ContextCompat
-import java.util.concurrent.Executors
-import androidx.camera.core.*
-import androidx.camera.lifecycle.ProcessCameraProvider
 import com.capston.ocrwordbook.ui.main.MainViewModel
-import kotlinx.android.synthetic.main.activity_main.*
-import java.nio.ByteBuffer
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
+
 typealias LumaListener = (luma: Double) -> Unit
 
 class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.layout.fragment_camera) {
@@ -41,6 +34,10 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
 
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
+
+
+    //resultForActivity에 쓰이는 코드
+    private val PICK_IMAGE = 0
 
     override var viewModel: CameraViewModel = CameraViewModel()
     override fun setViewModel() {
@@ -57,15 +54,23 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
             startCamera()
         } else {
             ActivityCompat.requestPermissions(
-                activity!!, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+                    activity!!, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
         // Set up the listener for take photo button
-        binding.cameraButtonTaking.setOnClickListener { takePhoto() }
-
+        binding.cameraButtonTaking.setOnClickListener {
+            takePhoto()
+        }
         outputDirectory = getOutputDirectory()
-
         cameraExecutor = Executors.newSingleThreadExecutor()
+
+        //갤러리 버튼
+        binding.cameraButtonGallery.setOnClickListener {
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = MediaStore.Images.Media.CONTENT_TYPE
+            startActivityForResult(intent, PICK_IMAGE)
+        }
+
 
 
 
@@ -98,7 +103,7 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
                 val savedUri = Uri.fromFile(photoFile)
                 val msg = "사진 저장 완료 \n($savedUri)"
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                MainViewModel.onSaved.value =  true
+                MainViewModel.onGetPicture.value = savedUri
                 Log.d(TAG, msg)
             }
         })
@@ -130,7 +135,7 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture)
 
-            } catch(exc: Exception) {
+            } catch (exc: Exception) {
                 Log.e(TAG, "카메라에 사용에 문제가 생겼습니다. \n Use case binding failed", exc)
             }
 
@@ -172,5 +177,7 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
+
+
 
 }

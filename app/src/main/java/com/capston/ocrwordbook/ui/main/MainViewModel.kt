@@ -2,26 +2,36 @@ package com.capston.ocrwordbook.ui.main
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
+import android.provider.MediaStore
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.ui.camera.CameraFragment
+import java.net.URI
 
 class MainViewModel() : ViewModel() {
 
+
+
     companion object {
-        var onSaved : MutableLiveData<Boolean> = MutableLiveData<Boolean>()
+        var onReadyImage : MutableLiveData<Boolean> = MutableLiveData<Boolean>()
+        var onGetPicture : MutableLiveData<Uri> = MutableLiveData<Uri>()
+        var onClickGalleryButton : MutableLiveData<Boolean> = MutableLiveData<Boolean>()
+        val PICK_IMAGE = 0
     }
 
 
-    fun CameraToResult(id: Int, context: AppCompatActivity) {
-        context.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment()).commit()
+
+    fun cameraToGallery(context: AppCompatActivity) {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = MediaStore.Images.Media.CONTENT_TYPE
+        context.startActivityForResult(intent, PICK_IMAGE)
     }
-
-
-
-
 
 }

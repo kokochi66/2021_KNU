@@ -1,5 +1,6 @@
 package com.capston.ocrwordbook.ui.result
 
+import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -12,7 +13,7 @@ import com.capston.ocrwordbook.ui.main.MainViewModel
 import com.capston.ocrwordbook.ui.word.WordFragment
 
 
-class ResultActivity : AppCompatActivity() {
+class ResultActivity() : AppCompatActivity() {
     private lateinit var binding: ActivityResultBinding
     var viewModel: ResultViewModel = ResultViewModel()
 
@@ -22,6 +23,8 @@ class ResultActivity : AppCompatActivity() {
 
         binding = DataBindingUtil.setContentView(this , R.layout.activity_result)
         binding.viewModel = viewModel
+
+        binding.resultImage.setImageURI(MainViewModel.onGetPicture.value)
 
 
 

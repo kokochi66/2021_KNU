@@ -1,20 +1,22 @@
 package com.capston.ocrwordbook.ui.main
 
-import android.annotation.SuppressLint
+import android.R.attr
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
+import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.text.Layout
+import android.util.Log
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.toDrawable
 import androidx.databinding.DataBindingUtil
-import androidx.databinding.ViewDataBinding
-import androidx.lifecycle.LifecycleOwner
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.databinding.ActivityMainBinding
 import com.capston.ocrwordbook.ui.camera.CameraFragment
+import com.capston.ocrwordbook.ui.main.MainViewModel.Companion.PICK_IMAGE
 import com.capston.ocrwordbook.ui.result.ResultActivity
 import com.capston.ocrwordbook.ui.result.ResultViewModel
 import com.capston.ocrwordbook.ui.word.WordFragment
+import java.io.InputStream
 
 
 class MainActivity : AppCompatActivity() {
@@ -25,16 +27,13 @@ class MainActivity : AppCompatActivity() {
         setTheme(android.R.style.Theme_NoTitleBar)
         super.onCreate(savedInstanceState)
 
-        binding = DataBindingUtil.setContentView(this ,R.layout.activity_main)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.viewModel = viewModel
 
 
-        MainViewModel.onSaved.observe({ lifecycle }) {
-            val intent = Intent(this, ResultActivity::class.java)
-            startActivity(intent)
-        }
 
 
+        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment()).commit()
 
         binding.mainLinearOcr.setOnClickListener {
             SwitchingOcr()
@@ -43,7 +42,18 @@ class MainActivity : AppCompatActivity() {
             SwitchingWords()
         }
 
-        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment()).commit()
+        //카메라 화면에서 사진 찍고 저장에 성공하면 호출
+        MainViewModel.onGetPicture.observe({ lifecycle }) {
+            val intent = Intent(this, ResultActivity::class.java)
+            startActivity(intent)
+        }
+
+        //카메라 화면에서 갤러리 버튼을 누르면 호출
+        MainViewModel.onClickGalleryButton.observe({ lifecycle }) {
+            viewModel.cameraToGallery(this)
+        }
+
+
 
 
 
@@ -78,5 +88,33 @@ class MainActivity : AppCompatActivity() {
         binding.mainTextWords.setTextColor(resources.getColor(R.color.white_text, null))
 
         this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, WordFragment()).commit()
+    }
+
+    //갤러리 관련 코드
+    //갤러리에서 이미지 불러온 후 행동
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        Log.d("gallery", "onActivityResult 도달1")
+
+        // Check which request we're responding to
+        //if (requestCode == MainViewModel.PICK_IMAGE) {
+            // Make sure the request was successful
+            Log.d("gallery", "onActivityResult 도달2")
+            if (resultCode == RESULT_OK) {
+                Log.d("gallery", "onActivityResult 도달3")
+                try {
+
+                    // 선택한 이미지에서 비트맵 생성
+                    val `in`: InputStream? = contentResolver.openInputStream(data?.data!!)
+                    val img = BitmapFactory.decodeStream(`in`)
+                    `in`?.close()
+                    // Result 화면으로 이동하기위한 코드
+                    Log.d("gallery", "onActivityResult 도달4")
+                    MainViewModel.onGetPicture.value = data?.data
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        //}
     }
 }
