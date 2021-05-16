@@ -4,6 +4,7 @@ import android.R.attr
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +16,8 @@ import com.capston.ocrwordbook.ui.camera.CameraFragment
 import com.capston.ocrwordbook.ui.main.MainViewModel.Companion.PICK_IMAGE
 import com.capston.ocrwordbook.ui.result.ResultActivity
 import com.capston.ocrwordbook.ui.result.ResultViewModel
+import com.capston.ocrwordbook.ui.web.WebActivity
+import com.capston.ocrwordbook.ui.web.WebViewModel
 import com.capston.ocrwordbook.ui.word.WordFragment
 import java.io.InputStream
 
@@ -42,16 +45,28 @@ class MainActivity : AppCompatActivity() {
             SwitchingWords()
         }
 
-        //카메라 화면에서 사진 찍고 저장에 성공하면 호출
+        //카메라 화면에서 사진 찍고 저장에 성공하거나 or 갤러리화면에서 사진 선택 성공시 호출 -> 결과화면으로 이동
         MainViewModel.onGetPicture.observe({ lifecycle }) {
             val intent = Intent(this, ResultActivity::class.java)
             startActivity(intent)
         }
 
-        //카메라 화면에서 갤러리 버튼을 누르면 호출
+        //카메라 화면에서 갤러리 버튼을 누르면 호출 -> 갤러리화면으로 이동
         MainViewModel.onClickGalleryButton.observe({ lifecycle }) {
-            viewModel.cameraToGallery(this)
+            val intent = Intent(Intent.ACTION_PICK)
+            intent.type = MediaStore.Images.Media.CONTENT_TYPE
+            startActivityForResult(intent, PICK_IMAGE)
         }
+
+
+        //단어장 화면 또는 결과 화면에서 단어를 선택했을 때 호출 -> 웹뷰화면으로 이동
+        WebViewModel.onClickWordItem.observe({ lifecycle }) {
+            val intent = Intent(this, WebActivity::class.java)
+            startActivity(intent)
+        }
+
+
+
 
 
 

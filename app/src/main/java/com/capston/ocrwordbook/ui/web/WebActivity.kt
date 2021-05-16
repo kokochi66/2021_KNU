@@ -16,7 +16,6 @@ class WebActivity() : AppCompatActivity() {
     private lateinit var binding: ActivityWebBinding
     var viewModel: WebViewModel = WebViewModel()
 
-    var word = "apple"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(android.R.style.Theme_NoTitleBar)
@@ -34,7 +33,9 @@ class WebActivity() : AppCompatActivity() {
 
 
         //binding.webWebView.webViewClient = WebViewClient()
-        binding.webWebView.loadUrl("https://www.wordreference.com/enko/" + word)
+        binding.webWebView.loadUrl("https://www.wordreference.com/enko/" + WebViewModel.onClickWord.value)
+
+
 
 
     }

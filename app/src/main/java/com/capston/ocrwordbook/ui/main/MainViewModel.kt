@@ -27,11 +27,4 @@ class MainViewModel() : ViewModel() {
     }
 
 
-
-    fun cameraToGallery(context: AppCompatActivity) {
-        val intent = Intent(Intent.ACTION_PICK)
-        intent.type = MediaStore.Images.Media.CONTENT_TYPE
-        context.startActivityForResult(intent, PICK_IMAGE)
-    }
-
 }

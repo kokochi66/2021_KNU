@@ -1,5 +1,6 @@
 package com.capston.ocrwordbook.ui.result
 
+import android.content.Intent
 import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -10,6 +11,8 @@ import com.capston.ocrwordbook.databinding.ActivityMainBinding
 import com.capston.ocrwordbook.databinding.ActivityResultBinding
 import com.capston.ocrwordbook.ui.camera.CameraFragment
 import com.capston.ocrwordbook.ui.main.MainViewModel
+import com.capston.ocrwordbook.ui.web.WebActivity
+import com.capston.ocrwordbook.ui.web.WebViewModel
 import com.capston.ocrwordbook.ui.word.WordFragment
 
 
@@ -26,6 +29,11 @@ class ResultActivity() : AppCompatActivity() {
 
         binding.resultImage.setImageURI(MainViewModel.onGetPicture.value)
 
+        binding.resultScannedText.setOnClickListener {
+            val intent = Intent(this, WebActivity::class.java)
+            startActivity(intent)
+            WebViewModel.onClickWord.value = binding.resultScannedText.text.toString()
+        }
 
 
     }
