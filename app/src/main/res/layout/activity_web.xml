@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="com.capston.ocrwordbook.ui.web.WebViewModel" />
+
+    </data>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <WebView
+            android:id="@+id/web_web_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:forceDarkAllowed="true"
+            android:fitsSystemWindows="true">
+
+        </WebView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="bottom|right"
+            android:layout_margin="20dp"
+            android:background="@color/teal_200"
+            app:cardBackgroundColor="@color/teal_200"
+            app:cardCornerRadius="100dp">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_gravity="center"
+                android:layout_margin="16dp"
+                android:background="@color/teal_200"
+                android:gravity="center"
+                android:text="저장"
+                android:textColor="@color/white_text"
+                android:textStyle="bold" />
+
+
+        </androidx.cardview.widget.CardView>
+
+
+    </FrameLayout>
+
+
+
+</layout>
