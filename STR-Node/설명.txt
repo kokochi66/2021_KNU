@@ -19,3 +19,8 @@ https://github.com/clovaai/CRAFT-pytorch
 https://github.com/clovaai/deep-text-recognition-benchmark
 위 프로젝트 필요 모듈 다 깔려 있어야 실행됩니다.
 설치 후에 다른 오류 나시면 말씀해주세요.
+
+nodejs에서 socket.io는 2.3.0 버전으로 설치하셔야 합니다.
+
+안드로이드 프로젝트에서는 main/MainActivity.kt 에서 socket 연결부분에서 자신의 localhost 주소로 변경하셔야 합니다.
+그리고 res/xml/network_security_config.xml에서도 권한 허용 도메인 목록에 똑같이 추가해주세요.
