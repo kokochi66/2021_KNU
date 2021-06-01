@@ -1,6 +1,8 @@
 import string
 import argparse
 
+import json
+import base64
 import os
 import torch
 import torch.backends.cudnn as cudnn
@@ -20,6 +22,16 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # change working directory
 cur_path = os.path.dirname(os.path.abspath(__file__))
 os.chdir(cur_path)
+
+data = {}
+data['total'] = []
+
+# Encode binary file data
+def fileToBase64(filepath):
+    fp = open(filepath, "rb")
+    data = fp.read()
+    fp.close()
+    return base64.b64encode(data).decode('utf-8')
 
 def demo(opt):
     """ model configuration """
@@ -77,7 +89,7 @@ def demo(opt):
                 preds_str = converter.decode(preds_index, length_for_pred)
 
 
-            log = open(f'../result.txt', 'w', encoding='utf8')
+            #log = open(f'../result.txt', 'w', encoding='utf8')
             #dashed_line = '-' * 80
             #head = f'{"image_path":25s}\t{"predicted_labels":25s}\tconfidence score'
             
@@ -97,10 +109,19 @@ def demo(opt):
 
                 #print(f'{img_name:25s}\t{pred:25s}\t{confidence_score:0.4f}')
                 #log.write(f'{img_name:25s}\t{pred:25s}\t{confidence_score:0.4f}\n')
+                
+                #result file 작성 : base64 인코딩 문자열, OCR 결과, 단어 번역
                 translated_text = trans.translate(pred, lang_src='en', lang_tgt='ko')
-                log.write(f'{pred} : {translated_text}\n')
-
-            log.close()
+                enc_image = fileToBase64(img_name)
+                
+                
+                #log.write(f'{enc_image}:{pred}:{translated_text}\n')
+                
+                data['total'].append({"base64": enc_image, "word": pred, "trans": translated_text})
+                
+            #log.close()
+            with open('../result.json', 'w', encoding='utf-8') as outfile:
+                json.dump(data, outfile, indent=4)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

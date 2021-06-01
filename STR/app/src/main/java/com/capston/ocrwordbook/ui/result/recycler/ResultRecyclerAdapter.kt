@@ -17,7 +17,7 @@ class ResultRecyclerAdapter(private val context: Context?, val itemList: ArrayLi
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResultRecyclerHolder {
         return ResultRecyclerHolder(context!!,
-            LayoutInflater.from(parent.context).inflate(R.layout.recycler_item_word, parent, false))
+            LayoutInflater.from(parent.context).inflate(R.layout.recycler_item_result, parent, false))
 
     }
 

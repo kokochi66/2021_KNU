@@ -7,6 +7,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -15,6 +17,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.databinding.ActivityResultBinding
+import com.capston.ocrwordbook.databinding.RecyclerItemResultBinding
 import com.capston.ocrwordbook.ui.main.MainActivity
 import com.capston.ocrwordbook.ui.main.MainViewModel
 import com.capston.ocrwordbook.ui.result.recycler.ResultRecyclerAdapter
@@ -22,6 +25,8 @@ import com.capston.ocrwordbook.ui.result.recycler.ResultRecyclerItem
 import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerAdapter
 import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerItem
 import io.socket.emitter.Emitter
+import okhttp3.internal.notify
+import org.json.JSONObject
 import java.io.File
 import java.util.*
 
@@ -73,11 +78,26 @@ class ResultActivity() : AppCompatActivity() {
             binding.resultImage.setImageBitmap(decoder(it))
         })
 
-        // 서버에서 OCR 결과가 넘어왔을 때 :
-        getOCR.observe(this, Observer {
-            // OCR 결과 처리
-        })
+        var jsonString=""
 
+        // 서버에서 OCR 결과가 넘어왔을 때 : json 파싱
+        getOCR.observe(this, Observer {
+            jsonString=it.trimIndent()
+
+            val jsonObject = JSONObject(jsonString)
+            val jsonArray = jsonObject.getJSONArray("total")
+
+            for (i in 0..jsonArray.length() - 1) {
+                val iObject = jsonArray.getJSONObject(i)
+                val cropped = decoder(iObject.getString("base64"))
+                val word = iObject.getString("word")
+                val mean = iObject.getString("trans")
+
+                resultRecyclerList.add(ResultRecyclerItem(cropped, word, mean))
+            }
+
+            resultRecyclerAdapter.notifyDataSetChanged()
+        })
 
         resultRecyclerAdapter = ResultRecyclerAdapter(this, resultRecyclerList)
         //리사이클러뷰 리스트에 데이터 넣는 과점 필요
@@ -85,15 +105,7 @@ class ResultActivity() : AppCompatActivity() {
             adapter = resultRecyclerAdapter
             layoutManager = GridLayoutManager(context, 1)
         }
-
-
-
-
     }
-
-
-
-
 
     // 클라이언트에서 'image' 이벤트로 데이터가 넘어왔을 때
     val onCraftImg = Emitter.Listener { args ->
@@ -126,7 +138,7 @@ class ResultActivity() : AppCompatActivity() {
 
     // base64를 비트맵 형식 반환
     @RequiresApi(Build.VERSION_CODES.O)
-    fun decoder(base64Str: String): Bitmap? {
+    fun decoder(base64Str: String): Bitmap {
         val imageByteArray = Base64.getDecoder().decode(base64Str)
         return BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
     }

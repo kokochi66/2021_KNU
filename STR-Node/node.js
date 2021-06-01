@@ -46,7 +46,7 @@ io.on('connection', (socket) => {
       PythonShell.run('./deep-text-recognition-benchmark-master/demo.py', null, (err, results2) => {
         if (err) throw err;
         console.log('OCR complete');
-        var ocrres = fs.readFileSync("result.txt", 'utf-8'); // OCR 결과 파일 그대로 전송(string) 
+        var ocrres = fs.readFileSync("result.json", 'utf-8'); // OCR 결과 파일 그대로 전송(string) 
         socket.emit('ocr', ocrres)
       });
     });
