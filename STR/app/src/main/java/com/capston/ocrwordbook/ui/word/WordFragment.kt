@@ -28,7 +28,7 @@ class WordFragment : BaseFragment<FragmentWordBinding, WordViewModel>(R.layout.f
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         super.onCreateView(inflater, container, savedInstanceState)
 
-
+        //임시로 넣어놓은 단어
         recyclerWordList.add(WordRecyclerItem("영어", "한국어", true, "미정"))
         recyclerWordList.add(WordRecyclerItem("apple", "사과", true, "미정"))
         recyclerWordList.add(WordRecyclerItem("banana", "바나나", false, "미정"))
@@ -65,9 +65,6 @@ class WordFragment : BaseFragment<FragmentWordBinding, WordViewModel>(R.layout.f
             adapter = WordRecyclerAdapter(context, recyclerWordList)
             layoutManager = GridLayoutManager(context, 1)
         }
-
-
-        recyclerWordList.add(WordRecyclerItem("last", "마지막", false, "미정"))
 
 
         return binding.root

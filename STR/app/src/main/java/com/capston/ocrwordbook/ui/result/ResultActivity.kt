@@ -12,10 +12,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.GridLayoutManager
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.databinding.ActivityResultBinding
 import com.capston.ocrwordbook.ui.main.MainActivity
 import com.capston.ocrwordbook.ui.main.MainViewModel
+import com.capston.ocrwordbook.ui.result.recycler.ResultRecyclerAdapter
+import com.capston.ocrwordbook.ui.result.recycler.ResultRecyclerItem
+import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerAdapter
+import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerItem
 import io.socket.emitter.Emitter
 import java.io.File
 import java.util.*
@@ -25,9 +30,14 @@ import java.util.*
 class ResultActivity() : AppCompatActivity() {
     var getImg: MutableLiveData<String> = MutableLiveData()
     var getOCR: MutableLiveData<String> = MutableLiveData()
+
     private lateinit var binding: ActivityResultBinding
     var viewModel: ResultViewModel = ResultViewModel()
     var soc = MainActivity.mSocket // 소켓
+
+
+    private var resultRecyclerList = ArrayList<ResultRecyclerItem>()
+    private lateinit var resultRecyclerAdapter : ResultRecyclerAdapter
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,7 +77,23 @@ class ResultActivity() : AppCompatActivity() {
         getOCR.observe(this, Observer {
             // OCR 결과 처리
         })
+
+
+        resultRecyclerAdapter = ResultRecyclerAdapter(this, resultRecyclerList)
+        //리사이클러뷰 리스트에 데이터 넣는 과점 필요
+        binding.resultRecyclerView.apply {
+            adapter = resultRecyclerAdapter
+            layoutManager = GridLayoutManager(context, 1)
+        }
+
+
+
+
     }
+
+
+
+
 
     // 클라이언트에서 'image' 이벤트로 데이터가 넘어왔을 때
     val onCraftImg = Emitter.Listener { args ->
