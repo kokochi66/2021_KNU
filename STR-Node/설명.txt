@@ -1,0 +1,15 @@
+- result.txt : OCR 결과, 구글 번역기 결과
+
+- img/res.jpg : 앱에서 받은 이미지 저장
+- img/cropped : 경계 박스 별로 자른 사진 폴더
+
+- CRAFT-pytorch-master/result/res_res.jpg : 경계 박스 표시된 이미지 (서버에서 앱으로 전송할 사진)
+- CRAFT-pytorch-master/result/res_res.txt : 경계 박스 좌표 (순서는 데이터 수집팀 json 파일에서 points 부분이랑 같은 순서로 표기됨)
+
+경계 상자에서
+①────────②
+│		│
+│		│
+④────────③
+
+①좌표,②좌표,③좌표,④좌표

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -11,7 +12,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.camera.core.*
+import androidx.annotation.RequiresApi
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -99,11 +104,12 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
                 Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
             }
 
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                 val savedUri = Uri.fromFile(photoFile)
                 val msg = "사진 저장 완료 \n($savedUri)"
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                MainViewModel.onGetPicture.value = savedUri
+                Toast.makeText(context, savedUri.toString(), Toast.LENGTH_SHORT).show()
+                MainViewModel.onGetPicture.value=savedUri
                 Log.d(TAG, msg)
             }
         })

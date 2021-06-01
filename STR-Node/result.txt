@@ -1,0 +1,6 @@
+design : 디자인 
+dusek : Dusek. 
+CONSULTANTS : 컨설턴트 
+PLANNING : 계획 
+AND : 과 
+ARCHITECTURAL : 건축물 

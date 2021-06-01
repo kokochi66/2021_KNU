@@ -1,28 +1,36 @@
 package com.capston.ocrwordbook.ui.main
 
-import android.R.attr
+
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.drawable.toDrawable
 import androidx.databinding.DataBindingUtil
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.databinding.ActivityMainBinding
 import com.capston.ocrwordbook.ui.camera.CameraFragment
 import com.capston.ocrwordbook.ui.main.MainViewModel.Companion.PICK_IMAGE
 import com.capston.ocrwordbook.ui.result.ResultActivity
-import com.capston.ocrwordbook.ui.result.ResultViewModel
 import com.capston.ocrwordbook.ui.web.WebActivity
 import com.capston.ocrwordbook.ui.web.WebViewModel
 import com.capston.ocrwordbook.ui.word.WordFragment
+import io.socket.client.IO
+import io.socket.client.Socket
 import java.io.InputStream
+import java.net.URISyntaxException
 
-
+@RequiresApi(Build.VERSION_CODES.O)
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        lateinit var mSocket: Socket
+    }
+
     private lateinit var binding: ActivityMainBinding
     var viewModel: MainViewModel = MainViewModel()
 
@@ -30,11 +38,16 @@ class MainActivity : AppCompatActivity() {
         setTheme(android.R.style.Theme_NoTitleBar)
         super.onCreate(savedInstanceState)
 
+        try {
+            mSocket = IO.socket("http://192.168.0.4:3000") // !!자신의 localhost로 수정
+            mSocket.connect()
+            Log.d("Connected", "OK")
+        } catch (e: URISyntaxException) {
+            Log.d("ERR", e.toString())
+        }
+
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.viewModel = viewModel
-
-
-
 
         this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment()).commit()
 
@@ -64,20 +77,8 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, WebActivity::class.java)
             startActivity(intent)
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
+
 
     fun SwitchingOcr() {
        binding.mainBarWords.visibility = View.INVISIBLE
@@ -107,6 +108,7 @@ class MainActivity : AppCompatActivity() {
 
     //갤러리 관련 코드
     //갤러리에서 이미지 불러온 후 행동
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         Log.d("gallery", "onActivityResult 도달1")
@@ -118,14 +120,13 @@ class MainActivity : AppCompatActivity() {
             if (resultCode == RESULT_OK) {
                 Log.d("gallery", "onActivityResult 도달3")
                 try {
-
                     // 선택한 이미지에서 비트맵 생성
                     val `in`: InputStream? = contentResolver.openInputStream(data?.data!!)
                     val img = BitmapFactory.decodeStream(`in`)
                     `in`?.close()
                     // Result 화면으로 이동하기위한 코드
                     Log.d("gallery", "onActivityResult 도달4")
-                    MainViewModel.onGetPicture.value = data?.data
+                    MainViewModel.onGetPicture.postValue(data?.data)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

@@ -17,14 +17,10 @@ import java.net.URI
 
 class MainViewModel() : ViewModel() {
 
-
-
     companion object {
-        var onReadyImage : MutableLiveData<Boolean> = MutableLiveData<Boolean>()
         var onGetPicture : MutableLiveData<Uri> = MutableLiveData<Uri>()
         var onClickGalleryButton : MutableLiveData<Boolean> = MutableLiveData<Boolean>()
         val PICK_IMAGE = 0
     }
-
 
 }
