@@ -23,7 +23,7 @@ app.get('/', (req,res) => {
 
     PythonShell.run('test.py', options, function (err, results) {
         if (err) throw err;
-        res.send(results);
+        res.send([{"result":results}]);
     }); // python파일을 실행하여 출력하는 코드
     
 }); // url 접속 시, python 파일이 실행 됨 
