@@ -23,6 +23,10 @@ class DescriptionDialog(context : Context) : Dialog(context)  {
             window.setGravity(Gravity.CENTER)
         }
 
+        binding.dialogDescriptionYes.setOnClickListener {
+            dismiss()
+        }
+
 
     }
     override fun show() {

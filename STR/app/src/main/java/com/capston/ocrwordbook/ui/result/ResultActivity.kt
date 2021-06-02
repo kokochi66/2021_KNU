@@ -131,7 +131,7 @@ class ResultActivity() : AppCompatActivity() {
                 list = ArrayList<WordSet?>()
             }
 
-            if(list.contains(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))) {
+            if(!list.contains(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))) {
                 list.add(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))
                 setStringArrayPref(this, "word_list", list)
                 Toast.makeText(this, ResultViewModel.recognizedText.value!!+" 저장 성공", Toast.LENGTH_LONG).show()
