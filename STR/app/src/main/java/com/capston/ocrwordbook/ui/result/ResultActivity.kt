@@ -1,11 +1,13 @@
 package com.capston.ocrwordbook.ui.result
 
+import android.content.Context
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
@@ -20,12 +22,19 @@ import com.capston.ocrwordbook.databinding.ActivityResultBinding
 import com.capston.ocrwordbook.databinding.RecyclerItemResultBinding
 import com.capston.ocrwordbook.ui.main.MainActivity
 import com.capston.ocrwordbook.ui.main.MainViewModel
+import com.capston.ocrwordbook.ui.result.dialog.ConfirmationDialog
+import com.capston.ocrwordbook.ui.result.dialog.DescriptionDialog
 import com.capston.ocrwordbook.ui.result.recycler.ResultRecyclerAdapter
 import com.capston.ocrwordbook.ui.result.recycler.ResultRecyclerItem
 import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerAdapter
 import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerItem
+import com.capston.ocrwordbook.utils.LoadingDialog
+import com.capston.ocrwordbook.utils.WordSet
+import com.google.gson.GsonBuilder
 import io.socket.emitter.Emitter
 import okhttp3.internal.notify
+import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.util.*
@@ -33,6 +42,11 @@ import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
 class ResultActivity() : AppCompatActivity() {
+
+    lateinit var mLoadingDialog: LoadingDialog
+    lateinit var mDescDialog: DescriptionDialog
+
+
     var getImg: MutableLiveData<String> = MutableLiveData()
     var getOCR: MutableLiveData<String> = MutableLiveData()
 
@@ -71,6 +85,8 @@ class ResultActivity() : AppCompatActivity() {
 
         // 사진을 base64 인코딩하여 서버로 전송
         var imgEnc = encoder(imgPath)
+
+        showLoadingDialog(this)
         MainActivity.mSocket.emit("image", imgEnc)
 
         // 서버에서 이미지가 넘어왔을 때 : 비트맵으로 디코딩 후 이미지뷰에 출력
@@ -97,6 +113,9 @@ class ResultActivity() : AppCompatActivity() {
             }
 
             resultRecyclerAdapter.notifyDataSetChanged()
+
+            dismissLoadingDialog()
+            showDescDialog(this)
         })
 
         resultRecyclerAdapter = ResultRecyclerAdapter(this, resultRecyclerList)
@@ -104,6 +123,22 @@ class ResultActivity() : AppCompatActivity() {
         binding.resultRecyclerView.apply {
             adapter = resultRecyclerAdapter
             layoutManager = GridLayoutManager(context, 1)
+        }
+
+        ResultViewModel.onClickConfirmation.observe({lifecycle}) {
+            var list : ArrayList<WordSet?>? = getStringArrayPref_item(this, "word_list")
+            if(list == null) {
+                list = ArrayList<WordSet?>()
+            }
+
+            if(list.contains(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))) {
+                list.add(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))
+                setStringArrayPref(this, "word_list", list)
+                Toast.makeText(this, ResultViewModel.recognizedText.value!!+" 저장 성공", Toast.LENGTH_LONG).show()
+            }
+            else {
+                Toast.makeText(this, "저장실패! 이미 저장된 단어입니다.", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -141,5 +176,61 @@ class ResultActivity() : AppCompatActivity() {
     fun decoder(base64Str: String): Bitmap {
         val imageByteArray = Base64.getDecoder().decode(base64Str)
         return BitmapFactory.decodeByteArray(imageByteArray, 0, imageByteArray.size)
+    }
+
+
+    //다이얼로그 정리
+    fun showLoadingDialog(context: Context) {
+        mLoadingDialog = LoadingDialog(context)
+        mLoadingDialog.show()
+    }
+
+    fun dismissLoadingDialog() {
+        if (mLoadingDialog.isShowing) {
+            mLoadingDialog.dismiss()
+        }
+    }
+
+    fun showDescDialog(context: Context) {
+        mDescDialog = DescriptionDialog(context)
+        mDescDialog.show()
+    }
+
+
+
+    fun setStringArrayPref(context: Context?, key: String?, values: ArrayList<WordSet?>) {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val editor = prefs.edit()
+        val a = JSONArray()
+        val gson = GsonBuilder().create()
+        for (i in 0 until values.size) {
+            val string: String = gson.toJson(values[i], WordSet::class.java)
+            a.put(string)
+        }
+        if (!values.isEmpty()) {
+            editor.putString(key, a.toString())
+        } else {
+            editor.putString(key, null)
+        }
+        editor.apply()
+    }
+
+    fun getStringArrayPref_item(context: Context?, key: String?): ArrayList<WordSet?>? {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val json = prefs.getString(key, null)
+        val OrderDatas: ArrayList<WordSet?> = ArrayList<WordSet?>()
+        val gson = GsonBuilder().create()
+        if (json != null) {
+            try {
+                val a = JSONArray(json)
+                for (i in 0 until a.length()) {
+                    val orderData: WordSet = gson.fromJson(a[i].toString(), WordSet::class.java)
+                    OrderDatas.add(orderData)
+                }
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+        }
+        return OrderDatas
     }
 }

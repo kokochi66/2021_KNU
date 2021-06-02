@@ -90,4 +90,7 @@ dependencies {
     implementation "androidx.camera:camera-lifecycle:$camerax_version"
 // CameraX View class
     implementation "androidx.camera:camera-view:1.0.0-alpha14"
+
+
+    implementation 'com.github.ybq:Android-SpinKit:1.4.0'
 }

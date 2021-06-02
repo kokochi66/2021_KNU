@@ -1,6 +1,7 @@
 package com.capston.ocrwordbook.ui.main
 
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
@@ -19,6 +20,7 @@ import com.capston.ocrwordbook.ui.result.ResultActivity
 import com.capston.ocrwordbook.ui.web.WebActivity
 import com.capston.ocrwordbook.ui.web.WebViewModel
 import com.capston.ocrwordbook.ui.word.WordFragment
+import com.capston.ocrwordbook.utils.LoadingDialog
 import io.socket.client.IO
 import io.socket.client.Socket
 import java.io.InputStream
@@ -26,6 +28,9 @@ import java.net.URISyntaxException
 
 @RequiresApi(Build.VERSION_CODES.O)
 class MainActivity : AppCompatActivity() {
+
+
+
 
     companion object {
         lateinit var mSocket: Socket
@@ -37,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(android.R.style.Theme_NoTitleBar)
         super.onCreate(savedInstanceState)
+
+
 
         try {
             mSocket = IO.socket("http://192.168.0.4:3000") // !!자신의 localhost로 수정
@@ -77,6 +84,8 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, WebActivity::class.java)
             startActivity(intent)
         }
+
+
     }
 
 
@@ -133,4 +142,6 @@ class MainActivity : AppCompatActivity() {
             }
         //}
     }
+
+
 }

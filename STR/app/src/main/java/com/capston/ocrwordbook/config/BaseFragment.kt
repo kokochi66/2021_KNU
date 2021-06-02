@@ -1,5 +1,6 @@
 package com.capston.ocrwordbook.config
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,9 +10,12 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
+import com.capston.ocrwordbook.utils.LoadingDialog
 
 
 abstract class BaseFragment<B : ViewDataBinding, VM : ViewModel>(private val layoutId: Int) : Fragment() {
+
+    lateinit var mLoadingDialog: LoadingDialog
 
     // Data Binding
     lateinit var binding: B
@@ -59,5 +63,16 @@ abstract class BaseFragment<B : ViewDataBinding, VM : ViewModel>(private val lay
         return binding.root
 
 
+    }
+
+    fun showLoadingDialog(context: Context) {
+        mLoadingDialog = LoadingDialog(context)
+        mLoadingDialog.show()
+    }
+
+    fun dismissLoadingDialog() {
+        if (mLoadingDialog.isShowing) {
+            mLoadingDialog.dismiss()
+        }
     }
 }

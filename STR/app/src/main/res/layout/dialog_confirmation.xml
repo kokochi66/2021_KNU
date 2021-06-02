@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/gray_900">
+
+    <TextView
+        android:id="@+id/dialog_confirmation_text_confirmation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="52dp"
+        android:layout_marginTop="36dp"
+        android:layout_marginEnd="52dp"
+        android:layout_marginBottom="36dp"
+        android:gravity="center"
+        android:text="선택한 단어를 \n저장하시겠습니까?"
+        android:textColor="@color/gray_200"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/dialog_confirmation_text_yes"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/dialog_confirmation_text_yes"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/gray_700"
+        android:gravity="center"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:text="예"
+        android:textColor="@color/gray_200"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/dialog_confirmation_sperate_bar"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <View
+        android:id="@+id/dialog_confirmation_sperate_bar"
+        android:layout_width="0.5dp"
+        android:layout_height="0dp"
+        android:background="@color/gray_500"
+        app:layout_constraintBottom_toBottomOf="@+id/dialog_confirmation_text_yes"
+        app:layout_constraintEnd_toStartOf="@+id/dialog_confirmation_text_no"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/dialog_confirmation_text_yes"
+        app:layout_constraintTop_toTopOf="@+id/dialog_confirmation_text_yes" />
+
+    <TextView
+        android:id="@+id/dialog_confirmation_text_no"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/gray_700"
+        android:gravity="center"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:text="아니오"
+        android:textColor="@color/gray_200"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/dialog_confirmation_sperate_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/dialog_confirmation_sperate_bar"
+        app:layout_constraintTop_toTopOf="@+id/dialog_confirmation_sperate_bar" />
+</androidx.constraintlayout.widget.ConstraintLayout>
