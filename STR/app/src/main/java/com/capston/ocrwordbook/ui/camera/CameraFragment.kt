@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.concurrent.thread
 
 
 typealias LumaListener = (luma: Double) -> Unit
@@ -39,6 +40,8 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
 
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
+
+    lateinit var myThread : Thread
 
 
     //resultForActivity에 쓰이는 코드
@@ -64,6 +67,21 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
 
         // Set up the listener for take photo button
         binding.cameraButtonTaking.setOnClickListener {
+
+            //카메라 촬영시 순간 깜빡이는 뷰 구현
+            myThread = thread {
+                    if(activity != null) {
+                        activity!!.runOnUiThread {
+                            binding.cameraPreviewForeground.visibility = View.VISIBLE
+                        }
+
+                        Thread.sleep(300)
+
+                        activity!!.runOnUiThread {
+                            binding.cameraPreviewForeground.visibility = View.INVISIBLE
+                        }
+                    }
+            }
             takePhoto()
         }
         outputDirectory = getOutputDirectory()
@@ -108,7 +126,7 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                 val savedUri = Uri.fromFile(photoFile)
                 val msg = "사진 저장 완료 \n($savedUri)"
-                Toast.makeText(context, savedUri.toString(), Toast.LENGTH_SHORT).show()
+                //Toast.makeText(context, savedUri.toString(), Toast.LENGTH_SHORT).show()
                 MainViewModel.onGetPicture.value=savedUri
                 Log.d(TAG, msg)
             }

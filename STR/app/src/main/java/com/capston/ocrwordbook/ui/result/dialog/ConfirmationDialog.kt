@@ -30,7 +30,7 @@ class ConfirmationDialog(context : Context, val recognizedWord : String) : Dialo
         binding.dialogConfirmationTextConfirmation.text = "선택한 단어("+recognizedWord+")을\n저장하시겠습니까?"
 
         binding.dialogConfirmationTextYes.setOnClickListener {
-            ResultViewModel.onClickConfirmation.value = true
+            ResultViewModel.onClickConfirmation.value = false
             dismiss()
         }
 
