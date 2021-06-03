@@ -43,10 +43,6 @@ class WordFragment : BaseFragment<FragmentWordBinding, WordViewModel>(R.layout.f
 
 
 
-
-
-
-
         binding.wordRecyclerView.apply {
             adapter = WordRecyclerAdapter(context, recyclerWordList)
             layoutManager = GridLayoutManager(context, 1)
