@@ -23,7 +23,7 @@ class WordRecyclerHolder(context: Context, itemView: View)
     fun bindView(item : WordRecyclerItem) {
         word.text = item.word
         meaning.text = item.meaning
-        if(item.favorite) {
+        if(!item.favorite) {
             favorite.setImageResource(R.drawable.favorite_filled)
         } else {
             favorite.setImageResource(R.drawable.favorite_empty)

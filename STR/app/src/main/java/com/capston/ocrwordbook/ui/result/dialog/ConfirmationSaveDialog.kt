@@ -8,9 +8,10 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.Window
 import com.capston.ocrwordbook.databinding.DialogConfirmationBinding
+import com.capston.ocrwordbook.ui.result.ResultActivityView
 import com.capston.ocrwordbook.ui.result.ResultViewModel
 
-class ConfirmationDialog(context : Context, val recognizedWord : String) : Dialog(context)  {
+class ConfirmationSaveDialog(context : Context, val recognizedWord : String, val resultActivityView: ResultActivityView) : Dialog(context)  {
     private lateinit var binding: DialogConfirmationBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,10 +28,11 @@ class ConfirmationDialog(context : Context, val recognizedWord : String) : Dialo
             window.setGravity(Gravity.CENTER)
         }
 
-        binding.dialogConfirmationTextConfirmation.text = "선택한 단어("+recognizedWord+")을\n저장하시겠습니까?"
+        binding.dialogConfirmationTextConfirmation.text = "선택한 단어("+recognizedWord+")를\n저장하시겠습니까?"
 
         binding.dialogConfirmationTextYes.setOnClickListener {
-            ResultViewModel.onClickConfirmation.value = false
+
+            resultActivityView.onClickDialogYes()
             dismiss()
         }
 

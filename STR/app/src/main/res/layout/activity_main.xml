@@ -45,8 +45,8 @@
 
                 <ImageView
                     android:id="@+id/main_image_ocr"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_marginTop="8dp"
                     app:srcCompat="@drawable/add_photo_white" />
 
@@ -58,7 +58,7 @@
                     android:layout_marginBottom="4dp"
                     android:text="글자인식"
                     android:textColor="@color/white_text"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
 
@@ -72,8 +72,8 @@
 
                 <ImageView
                     android:id="@+id/main_image_words"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_marginTop="8dp"
                     app:srcCompat="@drawable/word_list_gray_700" />
 
@@ -85,7 +85,7 @@
                     android:layout_marginBottom="4dp"
                     android:text="단어장"
                     android:textColor="@color/gray_700"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
@@ -117,14 +117,14 @@
             <View
                 android:id="@+id/main_bar_ocr"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="0.5dp"
                 android:layout_weight="1"
                 android:background="@color/white_text" />
 
             <View
                 android:id="@+id/main_bar_words"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="0.5dp"
                 android:layout_weight="1"
                 android:background="@color/white_text"
                 android:visibility="invisible" />

@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -19,20 +18,15 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.databinding.ActivityResultBinding
-import com.capston.ocrwordbook.databinding.RecyclerItemResultBinding
 import com.capston.ocrwordbook.ui.main.MainActivity
 import com.capston.ocrwordbook.ui.main.MainViewModel
-import com.capston.ocrwordbook.ui.result.dialog.ConfirmationDialog
 import com.capston.ocrwordbook.ui.result.dialog.DescriptionDialog
 import com.capston.ocrwordbook.ui.result.recycler.ResultRecyclerAdapter
 import com.capston.ocrwordbook.ui.result.recycler.ResultRecyclerItem
-import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerAdapter
-import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerItem
 import com.capston.ocrwordbook.utils.LoadingDialog
 import com.capston.ocrwordbook.utils.WordSet
 import com.google.gson.GsonBuilder
 import io.socket.emitter.Emitter
-import okhttp3.internal.notify
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -41,7 +35,7 @@ import java.util.*
 
 
 @RequiresApi(Build.VERSION_CODES.O)
-class ResultActivity() : AppCompatActivity() {
+class ResultActivity() : AppCompatActivity(), ResultActivityView {
 
     lateinit var mLoadingDialog: LoadingDialog
     lateinit var mDescDialog: DescriptionDialog
@@ -118,28 +112,14 @@ class ResultActivity() : AppCompatActivity() {
             showDescDialog(this)
         })
 
-        resultRecyclerAdapter = ResultRecyclerAdapter(this, resultRecyclerList)
+        resultRecyclerAdapter = ResultRecyclerAdapter(this, resultRecyclerList, this)
         //리사이클러뷰 리스트에 데이터 넣는 과점 필요
         binding.resultRecyclerView.apply {
             adapter = resultRecyclerAdapter
             layoutManager = GridLayoutManager(context, 1)
         }
 
-        ResultViewModel.onClickConfirmation.observe({lifecycle}) {
-            var list : ArrayList<WordSet?>? = getStringArrayPref_item(this, "word_list")
-            if(list == null) {
-                list = ArrayList<WordSet?>()
-            }
 
-            if(!list.contains(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))) {
-                list.add(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))
-                setStringArrayPref(this, "word_list", list)
-                Toast.makeText(this, ResultViewModel.recognizedText.value!!+" 저장 성공", Toast.LENGTH_LONG).show()
-            }
-            else {
-                Toast.makeText(this, "저장실패! 이미 저장된 단어입니다.", Toast.LENGTH_LONG).show()
-            }
-        }
     }
 
     // 클라이언트에서 'image' 이벤트로 데이터가 넘어왔을 때
@@ -232,5 +212,21 @@ class ResultActivity() : AppCompatActivity() {
             }
         }
         return OrderDatas
+    }
+
+    override fun onClickDialogYes() {
+        var list : ArrayList<WordSet?>? = getStringArrayPref_item(this, "word_list")
+        if(list == null) {
+            list = ArrayList<WordSet?>()
+        }
+
+        if(!list.contains(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))) {
+            list.add(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))
+            setStringArrayPref(this, "word_list", list)
+            Toast.makeText(this, ResultViewModel.recognizedText.value!!+" 저장 성공", Toast.LENGTH_LONG).show()
+        }
+        else {
+            Toast.makeText(this, "저장실패! 이미 저장된 단어입니다.", Toast.LENGTH_LONG).show()
+        }
     }
 }

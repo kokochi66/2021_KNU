@@ -7,16 +7,17 @@ import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.capston.ocrwordbook.R
+import com.capston.ocrwordbook.ui.result.ResultActivityView
 import com.capston.ocrwordbook.ui.result.ResultViewModel
-import com.capston.ocrwordbook.ui.result.dialog.ConfirmationDialog
+import com.capston.ocrwordbook.ui.result.dialog.ConfirmationSaveDialog
 import com.capston.ocrwordbook.ui.web.WebActivity
 import com.capston.ocrwordbook.ui.web.WebViewModel
 
 
-class ResultRecyclerAdapter(private val context: Context?, val itemList: ArrayList<ResultRecyclerItem>)
+class ResultRecyclerAdapter(private val context: Context?, val itemList: ArrayList<ResultRecyclerItem>, val resultActivityView: ResultActivityView)
     : RecyclerView.Adapter<ResultRecyclerHolder>() {
 
-    lateinit var mConfDialog: ConfirmationDialog
+    lateinit var mConfSaveDialog: ConfirmationSaveDialog
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResultRecyclerHolder {
         return ResultRecyclerHolder(context!!,
@@ -44,16 +45,15 @@ class ResultRecyclerAdapter(private val context: Context?, val itemList: ArrayLi
         container.setOnLongClickListener {
             ResultViewModel.recognizedText.value = itemList[position].recognizedText
             ResultViewModel.meaningText.value = itemList[position].meaningText
-            showConfDialog(context!!, itemList[position].recognizedText)
+            showConfSaveDialog(context!!, itemList[position].recognizedText)
 
             true
         }
-
     }
 
-    fun showConfDialog(context: Context, recognizedWord: String) {
-        mConfDialog = ConfirmationDialog(context,recognizedWord)
-        mConfDialog.show()
+    fun showConfSaveDialog(context: Context, recognizedWord: String) {
+        mConfSaveDialog = ConfirmationSaveDialog(context,recognizedWord, resultActivityView)
+        mConfSaveDialog.show()
     }
 
 

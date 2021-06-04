@@ -3,6 +3,8 @@ package com.capston.ocrwordbook.ui.word
 import android.content.Context
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +20,7 @@ import com.google.gson.GsonBuilder
 import org.json.JSONArray
 import org.json.JSONException
 
-class WordFragment : BaseFragment<FragmentWordBinding, WordViewModel>(R.layout.fragment_word) {
+class WordFragment : BaseFragment<FragmentWordBinding, WordViewModel>(R.layout.fragment_word), WordFragmentView {
 
     private var recyclerWordList = ArrayList<WordRecyclerItem>()
     private lateinit var recyclerWordAdapter  : WordRecyclerAdapter
@@ -34,6 +36,8 @@ class WordFragment : BaseFragment<FragmentWordBinding, WordViewModel>(R.layout.f
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         super.onCreateView(inflater, container, savedInstanceState)
 
+
+        //저장된 단어 복원하는 코드
         var list = getStringArrayPref_item(context, "word_list")
         if(list != null) {
            for(wordSet in list) {
@@ -41,19 +45,38 @@ class WordFragment : BaseFragment<FragmentWordBinding, WordViewModel>(R.layout.f
            }
         }
 
+        recyclerWordList.add(WordRecyclerItem("car","사과", true ))
+        recyclerWordList.add(WordRecyclerItem("banana","사과", true ))
+        recyclerWordList.add(WordRecyclerItem("apple","사과", true ))
+        recyclerWordList.add(WordRecyclerItem("zebra","사과", false ))
+        recyclerWordList.add(WordRecyclerItem("dart","사과", false ))
+        recyclerWordList.add(WordRecyclerItem("tax","사과", false ))
+        recyclerWordList.add(WordRecyclerItem("apple","사과", false ))
 
 
-
-
-
-
+        recyclerWordList.sortWith(compareBy( {it.favorite}, {it.word} ))
+        recyclerWordAdapter = WordRecyclerAdapter(context, recyclerWordList, this)
         binding.wordRecyclerView.apply {
-            adapter = WordRecyclerAdapter(context, recyclerWordList)
+            adapter = recyclerWordAdapter
             layoutManager = GridLayoutManager(context, 1)
         }
 
+        binding.wordSearching.addTextChangedListener (object: TextWatcher {
+            override fun beforeTextChanged(charSequence: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                //Do Nothing
+            }
+            override fun onTextChanged(charSequence: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                recyclerWordAdapter?.filter?.filter(charSequence)
+            }
+            override fun afterTextChanged(charSequence: Editable?) {
+                //Do Nothing
+            }
 
-        return binding.root
+        })
+
+
+
+            return binding.root
     }
 
     fun setStringArrayPref(context: Context?, key: String?, values: ArrayList<WordSet?>) {
@@ -90,6 +113,17 @@ class WordFragment : BaseFragment<FragmentWordBinding, WordViewModel>(R.layout.f
             }
         }
         return OrderDatas
+    }
+
+    override fun onClickDialogYes(position: Int) {
+        recyclerWordAdapter.itemList.removeAt(position)
+
+        val temp = ArrayList<WordSet?>()
+        for(word in recyclerWordList){
+            temp.add(WordSet(word.word, word.meaning))
+        }
+        setStringArrayPref(context, "word_list", temp)
+        recyclerWordAdapter.notifyDataSetChanged()
     }
 
 }
