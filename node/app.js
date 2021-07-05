@@ -1,46 +1,42 @@
-const express = require('express');
-const fs = require('fs')
-const app = express();
-let  { PythonShell }  =  require ( 'python-shell' )
-let pyshell = new PythonShell('test.py');
+const app = require('express')()
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+const fs = require('fs');  
+const { PythonShell } = require('python-shell');
+var ocrPath = './img/cropped'
 
-
-    // pyshell.send(base64str);
-    // pyshell.on('message', function (message) {
-    //     console.log(message)
-    // }); // python 파일에 입력을 보낼 수 있는 코드
-
-
-app.get('/', (req,res) => {
-    var base64str = base64_encode('img.png');
-    let options = {
-        mode: 'text',
-        pythonPath: '', // Python의 경로를 나타낸다
-        pythonOptions: ['-u'], // get print results in real-time
-        scriptPath: '', // Python Script가 있는 경로
-        args: base64str // Python Script에 넘겨줄 인자 목록
-      };
-
-    PythonShell.run('test.py', options, function (err, results) {
-        if (err) throw err;
-        res.send([{"result":results}]);
-    }); // python파일을 실행하여 출력하는 코드
-    
-}); // url 접속 시, python 파일이 실행 됨 
+// 서버와 모델간의 직접적인 통신을 테스트하는 서버파일
 
 app.listen(3000, () => {
-    console.log('server connecting :: 3000');
-});
+    console.log("server connecting :: 3000")
 
+    let imageFile = fs.readFileSync('./sample/img2.jpg')
+    let base64Image = base64_encode(imageFile)
+    let decodedImage = base64_decode(base64Image)
+    fs.writeFileSync('./savedImage.jpg', decodedImage, (err) => {});
 
-function base64_encode(file) {   
-    var bitmap = fs.readFileSync(file);  
-    return new Buffer(bitmap).toString('base64');  
-}  
+    let options = {
+        mode : 'text',
+        args: ['app.js input data String']
+      };
   
-function base64_decode(base64str, file) {  
-    var bitmap = new Buffer(base64str, 'base64');  
-    fs.writeFileSync(file, bitmap);  
-}  
+      let pythonFile = './test.py'
+      let pythonFile2 = './CRAFT-pytorch-master/test.py'
   
+      // 원본 이미지에 경계 박스 표시 + 자른 이미지 저장
+      PythonShell.run(pythonFile2, options, (err, result) => {
+        if (err) throw err;
+      });
 
+})
+
+// base64 인코딩
+function base64_encode(file) {  
+    return new Buffer.from(file).toString('base64');  
+  }  
+  
+  // base64 디코딩
+  function base64_decode(base64str) {  
+    var bitmap = new Buffer.from(base64str, 'base64');
+    return bitmap
+  }  
