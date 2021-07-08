@@ -24,6 +24,8 @@ import imgproc
 import file_utils
 import json
 import zipfile
+import base64
+from io import BytesIO
 
 from craft import CRAFT
 
@@ -61,10 +63,6 @@ parser.add_argument('--refine', default=False, action='store_true', help='enable
 parser.add_argument('--refiner_model', default='weights/craft_refiner_CTW1500.pth', type=str, help='pretrained refiner model')
 
 args = parser.parse_args()
-
-
-node_server_data = sys.argv[1]
-print(node_server_data)
 
 
 """ For test images in a folder """
@@ -169,7 +167,6 @@ if __name__ == '__main__':
         image = imgproc.loadImage(image_path)
 
         bboxes, polys, score_text = test_net(net, image, args.text_threshold, args.link_threshold, args.low_text, args.cuda, args.poly, refine_net)
-
         ''' save score text
         filename, file_ext = os.path.splitext(os.path.basename(image_path))
         mask_file = result_folder + "/res_" + filename + '_mask.jpg'
@@ -182,9 +179,16 @@ if __name__ == '__main__':
     # print("elapsed time : {}s".format(time.time() - t))
     
     # image crop
+
+    node_server_data = input()
     
-    im = Image.open("../img/res.jpg").convert("RGBA")
-    imArray = np.asarray(im)
+    # im = Image.open("../img/res.jpg").convert("RGBA")
+    im2_bytes = base64.b64decode(node_server_data)
+    im2_file = BytesIO(im2_bytes)
+    im2 = Image.open(im2_file).convert("RGBA")
+    print(im2)
+    
+    imArray = np.asarray(im2)
     
     for num in range (0, len(polys)) :
     

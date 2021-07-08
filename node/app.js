@@ -5,28 +5,34 @@ const fs = require('fs');
 const { PythonShell } = require('python-shell');
 var ocrPath = './img/cropped'
 
+let pythonFile = './test.py'
+let pythonFile2 = './CRAFT-pytorch-master/test.py'
+let pyshell = new PythonShell(pythonFile2)
+
+
 // 서버와 모델간의 직접적인 통신을 테스트하는 서버파일
 
 app.listen(3000, () => {
     console.log("server connecting :: 3000")
 
-    let imageFile = fs.readFileSync('./sample/img2.jpg')
+    let imageFile = fs.readFileSync('./sample/img3.jpg')
     let base64Image = base64_encode(imageFile)
     let decodedImage = base64_decode(base64Image)
-    fs.writeFileSync('./savedImage.jpg', decodedImage, (err) => {});
 
     let options = {
-        mode : 'text',
         args: ['app.js input data String']
       };
-  
-      let pythonFile = './test.py'
-      let pythonFile2 = './CRAFT-pytorch-master/test.py'
-  
-      // 원본 이미지에 경계 박스 표시 + 자른 이미지 저장
-      PythonShell.run(pythonFile2, options, (err, result) => {
-        if (err) throw err;
-      });
+      pyshell.send(base64Image)
+      pyshell.on('message', (message) => {
+        console.log('send messgae :',message)
+      })
+
+      pyshell.end((err, code, signal) => {
+        if(err) throw err;
+        console.log('the exit code was :', code)
+        console.log('the exit signal was :', signal)
+        console.log('finished')
+      })
 
 })
 
