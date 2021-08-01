@@ -19,12 +19,15 @@ from PIL import Image, ImageDraw
 import cv2
 from skimage import io
 import numpy as np
+
 import craft_utils
 import imgproc
 import file_utils
 import json
 import zipfile
 import base64
+import json
+
 from io import BytesIO
 
 from craft import CRAFT
@@ -58,7 +61,7 @@ parser.add_argument('--canvas_size', default=1280, type=int, help='image size fo
 parser.add_argument('--mag_ratio', default=1.5, type=float, help='image magnification ratio')
 parser.add_argument('--poly', default=False, action='store_true', help='enable polygon type')
 parser.add_argument('--show_time', default=False, action='store_true', help='show processing time')
-parser.add_argument('--test_folder', default='../img/', type=str, help='folder path to input images')
+parser.add_argument('--test_folder', default='../sample2/', type=str, help='folder path to input images')
 parser.add_argument('--refine', default=False, action='store_true', help='enable link refiner')
 parser.add_argument('--refiner_model', default='weights/craft_refiner_CTW1500.pth', type=str, help='pretrained refiner model')
 
@@ -68,7 +71,7 @@ args = parser.parse_args()
 """ For test images in a folder """
 image_list, _, _ = file_utils.get_files(args.test_folder)
 
-result_folder = './result/'
+result_folder = '../img/result/'
 if not os.path.isdir(result_folder):
     os.mkdir(result_folder)
 
@@ -160,35 +163,40 @@ if __name__ == '__main__':
 
     t = time.time()
 
-    # load data
-    for k, image_path in enumerate(image_list):
-        # print("Test image {:d}/{:d}: {:s}".format(k+1, len(image_list), image_path), end='\r')
-        imgproc.resizeImage(image_path)
-        image = imgproc.loadImage(image_path)
+    jsondata = {
+        "res_img" : "",
+        "res_cropped" : []
+    }
 
-        bboxes, polys, score_text = test_net(net, image, args.text_threshold, args.link_threshold, args.low_text, args.cuda, args.poly, refine_net)
-        ''' save score text
-        filename, file_ext = os.path.splitext(os.path.basename(image_path))
-        mask_file = result_folder + "/res_" + filename + '_mask.jpg'
-        cv2.imwrite(mask_file, score_text)
-        '''
 
-        image = image.copy()
-        file_utils.saveResult(image_path, image[:,:,::-1], polys, dirname=result_folder)
-
-    # print("elapsed time : {}s".format(time.time() - t))
-    
-    # image crop
-
+    # nodejs에서 전달받은 base64 문자열 파일을 받는다.
     node_server_data = input()
-    
-    # im = Image.open("../img/res.jpg").convert("RGBA")
     im2_bytes = base64.b64decode(node_server_data)
     im2_file = BytesIO(im2_bytes)
-    im2 = Image.open(im2_file).convert("RGBA")
-    print(im2)
+    im2 = Image.open(im2_file).convert("RGB")
+    im2_data = np.asarray(im2)
+    # 해당 파일을 이미지로 변환해주고, numpy객체로 변환시켜서, 글자를 읽어내도록 한다.
+
+    bboxes, polys, score_text = test_net(net, im2_data, args.text_threshold, args.link_threshold, args.low_text, args.cuda, args.poly, refine_net)
+    im2_data = im2_data.copy()
+
+    im2_res = file_utils.saveResult("result", im2_data, polys, dirname=result_folder)
+
+    im2_fr = Image.fromarray(im2_res)
+    im2_buffer = BytesIO()
+    im2_fr.save(im2_buffer, format="PNG")
+    im2_resImg_base64 = base64.b64encode(im2_buffer.getvalue()).decode("utf-8")
+
+    jsondata['res_img'] = im2_resImg_base64
+
+    # print(jsondata)
+
+    # 읽어낸 값을 적용하여 저장한다 (해당 부분은 저장이 아닌, 서버로 다시 base64파일로 돌려주도록 해야함(JSON객체에 담아서))
+
+
     
-    imArray = np.asarray(im2)
+    im2_proc = Image.open(im2_file).convert("RGBA")
+    imArray = np.asarray(im2_proc)
     
     for num in range (0, len(polys)) :
     
@@ -219,4 +227,8 @@ if __name__ == '__main__':
             poly_y.append(int(pxy[1]))
 
         croppedIm = newIm.crop((min(poly_x), min(poly_y), max(poly_x), max(poly_y)))
+        cropped_buffer = BytesIO()
+        croppedIm.save(cropped_buffer, format="PNG")
+        jsondata['res_cropped'].append(base64.b64encode(cropped_buffer.getvalue()).decode("utf-8"))
         croppedIm.save("../img/cropped/" + str(num) + ".png")
+    print(jsondata)

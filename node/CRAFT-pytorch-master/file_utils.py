@@ -59,7 +59,7 @@ def saveResult(img_file, img, boxes, dirname='./result/', verticals=None, texts=
                 f.write(strResult)
 
                 poly = poly.reshape(-1, 2)
-                cv2.polylines(img, [poly.reshape((-1, 1, 2))], True, color=(0, 0, 255), thickness=2)
+                cv2.polylines(img, [poly.reshape((-1, 1, 2))], True, color=(255, 0, 0), thickness=2)
                 ptColor = (0, 255, 255)
                 if verticals is not None:
                     if verticals[i]:
@@ -73,4 +73,4 @@ def saveResult(img_file, img, boxes, dirname='./result/', verticals=None, texts=
 
         # Save result image
         cv2.imwrite(res_img_file, img)
-
+        return img
