@@ -7,7 +7,9 @@ var ocrPath = './img/cropped'
 
 let pythonFile = './test.py'
 let pythonFile2 = './CRAFT-pytorch-master/test.py'
+let pythonFile3 = './deep-text-recognition-benchmark-master/test.py'
 let pyshell = new PythonShell(pythonFile2)
+let pyshell2 = new PythonShell(pythonFile3)
 
 
 // 서버와 모델간의 직접적인 통신을 테스트하는 서버파일
@@ -44,6 +46,8 @@ app.listen(3000, () => {
           decodeFile = base64_decode(resJson['res_cropped'][i])
           fs.writeFileSync(`./res/cropped/cropped${i}.png`, decodeFile);
         }
+
+        pyshell.send()
       })
 
 })
