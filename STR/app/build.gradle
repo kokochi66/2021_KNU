@@ -83,14 +83,13 @@ dependencies {
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
     androidTestImplementation 'junit:junit:4.12'
 
-    def camerax_version = "1.0.0-beta07"
-// CameraX core library using camera2 implementation
-    implementation "androidx.camera:camera-camera2:$camerax_version"
-// CameraX Lifecycle Library
-    implementation "androidx.camera:camera-lifecycle:$camerax_version"
-// CameraX View class
-    implementation "androidx.camera:camera-view:1.0.0-alpha14"
 
+    implementation "androidx.camera:camera-camera2:1.1.0-alpha07" // CameraX core library using camera2 implementation
+    implementation "androidx.camera:camera-lifecycle:1.1.0-alpha07" // CameraX Lifecycle Library
+    implementation "androidx.camera:camera-view:1.0.0-alpha27" // CameraX View class
 
-    implementation 'com.github.ybq:Android-SpinKit:1.4.0'
+    implementation 'com.github.ybq:Android-SpinKit:1.4.0' // 로딩다이얼로그
+
+    implementation "androidx.room:room-runtime:2.3.0" //런타임에 사용
+    kapt "androidx.room:room-compiler:2.3.0" // Room 컴파일러
 }

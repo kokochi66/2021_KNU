@@ -10,10 +10,11 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
+import com.capston.ocrwordbook.databinding.ActivityMainBinding.bind
 import com.capston.ocrwordbook.utils.LoadingDialog
 
 
-abstract class BaseFragment<B : ViewDataBinding, VM : ViewModel>(private val layoutId: Int) : Fragment() {
+abstract class BaseFragment<B : ViewDataBinding, VM : ViewModel>(private val layoutId: Int) : Fragment(layoutId) {
 
     lateinit var mLoadingDialog: LoadingDialog
 
@@ -23,9 +24,6 @@ abstract class BaseFragment<B : ViewDataBinding, VM : ViewModel>(private val lay
     // View Model
     abstract var viewModel: VM
 
-
-    // Loading Dialog
-    //private var mLoadingDialog: LoadingDialog? = context?.let { LoadingDialog(it) }
 
     // View Model 설정
     abstract fun setViewModel()
@@ -37,8 +35,6 @@ abstract class BaseFragment<B : ViewDataBinding, VM : ViewModel>(private val lay
 
     override fun onResume() {
         super.onResume()
-
-
     }
 
     override fun onCreateView(
@@ -63,6 +59,10 @@ abstract class BaseFragment<B : ViewDataBinding, VM : ViewModel>(private val lay
         return binding.root
 
 
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
     }
 
     fun showLoadingDialog(context: Context) {

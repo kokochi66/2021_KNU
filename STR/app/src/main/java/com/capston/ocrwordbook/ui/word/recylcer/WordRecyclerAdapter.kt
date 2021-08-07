@@ -6,108 +6,115 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.capston.ocrwordbook.R
-import com.capston.ocrwordbook.ui.result.dialog.ConfirmationSaveDialog
-import com.capston.ocrwordbook.ui.web.WebViewModel
-import com.capston.ocrwordbook.ui.word.WordFragmentView
-import com.capston.ocrwordbook.ui.word.dialog.ConfirmationDeleteDialog
-import com.capston.ocrwordbook.utils.Resource
+import com.capston.ocrwordbook.data.Word
+import com.capston.ocrwordbook.databinding.RecyclerItemWordBinding
 
 
-class WordRecyclerAdapter(private val context: Context?, val wordList: ArrayList<WordRecyclerItem>, val wordFragmentView: WordFragmentView)
-    : RecyclerView.Adapter<WordRecyclerHolder>(), Filterable {
+class WordRecyclerAdapter(
+    private val onClickWord: (Word) -> Unit,
+    private val onLongClickWord: (Word) -> Unit
+) : ListAdapter<Word, WordRecyclerAdapter.ViewHolder>(diffUtil) {
 
-    //필터링을 위해 필요한 변수
-    var itemList: ArrayList<WordRecyclerItem> = wordList
+    inner class ViewHolder(private val binding: RecyclerItemWordBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(word: Word) {
 
-//    inner class FileViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-//        val str: TextView = itemView.
-//
-//    }
-
-    lateinit var mConfDeleteDialog: ConfirmationDeleteDialog
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WordRecyclerHolder {
-        return WordRecyclerHolder(context!!,
-                LayoutInflater.from(parent.context).inflate(R.layout.recycler_item_word, parent, false))
-
-    }
-
-    override fun getItemCount(): Int {
-        return itemList.size
-    }
-
-    override fun onBindViewHolder(holder: WordRecyclerHolder, position: Int) {
-        holder.bindView(itemList[position])
-        var container = holder.itemView.findViewById<ConstraintLayout>(R.id.recycler_item_word_container)
-
-        // 웹뷰 화면으로 이동
-        container.setOnClickListener {
-            WebViewModel.onClickWord.value = itemList[position].word
-            WebViewModel.onClickWordItem.value = true
-        }
-
-        // 길게누르면 다이얼로그 보여주고 삭제
-        container.setOnLongClickListener {
-           showConfDeleteDialog(context!!, itemList[position].word, position, wordFragmentView)
-            true
-        }
-
-        var favorite = holder.itemView.findViewById<ImageView>(R.id.recycler_item_word_button_favorite)
-        favorite.setOnClickListener {
-            if(!itemList[position].favorite) {
-                favorite.setImageResource(R.drawable.favorite_empty)
-                itemList[position].favorite = true
-            }
-            else {
-                favorite.setImageResource(R.drawable.favorite_filled)
-                itemList[position].favorite = false
-            }
-            itemList.sortWith(compareBy( {it.favorite}, {it.word} ))
-            notifyDataSetChanged()
-        }
-
-    }
-
-
-
-    fun showConfDeleteDialog(context: Context, recognizedWord: String, position: Int, wordFragmentView: WordFragmentView) {
-        mConfDeleteDialog = ConfirmationDeleteDialog(context, recognizedWord, position, wordFragmentView)
-        mConfDeleteDialog.show()
-    }
-
-    override fun getFilter(): Filter? {
-        return object : Filter() {
-            override fun performFiltering(constraint: CharSequence): FilterResults {
-                val charString = constraint.toString()
-                itemList = if (charString.isEmpty()) {
-                    wordList
-                } else {
-                    val filteredList = ArrayList<WordRecyclerItem>()
-                    if (itemList != null) {
-                        for (wordRecyclerItem in itemList) {
-                            if(wordRecyclerItem.word.toLowerCase().contains(charString.toLowerCase())) {
-                                filteredList.add(wordRecyclerItem)
-                            }
-                        }
-                    }
-                    filteredList
-                }
-                val filterResults = FilterResults()
-                filterResults.values = itemList
-                return filterResults
+            binding.recyclerItemWordTextWord.text = word.word
+            binding.recyclerItemWordTextMeaning.text = word.meaning
+            if (word.favorite) {
+                binding.recyclerItemWordButtonFavorite.setImageResource(R.drawable.favorite_filled)
+            } else {
+                binding.recyclerItemWordButtonFavorite.setImageResource(R.drawable.favorite_empty)
             }
 
-            override fun publishResults(constraint: CharSequence, results: FilterResults) {
-                itemList  = results.values as ArrayList<WordRecyclerItem>
+            binding.recyclerItemWordButtonFavorite.setOnClickListener {
+                word.favorite = !word.favorite
                 notifyDataSetChanged()
             }
+
+            binding.root.setOnClickListener {
+                onClickWord(word) // todo 웹뷰를 보여준다.
+            }
+            binding.root.setOnClickListener {
+                onLongClickWord(word)  // todo 단어를 저장한다.
+            }
+
         }
     }
 
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
+        ViewHolder(
+            RecyclerItemWordBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+        )
 
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(currentList[position])
+    }
+
+//    override fun getFilter(): Filter {
+//        return object : Filter() {
+//            override fun performFiltering(constraint: CharSequence): FilterResults {
+//                val keyword = constraint.toString()
+//                val filterResults = FilterResults()
+//                if (keyword.isNotEmpty()) {
+//                    val filteredList = mutableListOf<Word>()
+//
+//                    currentList.forEach {
+//                        if (it.word.equals(keyword, true)) {
+//                            filteredList.add(it)
+//                        }
+//                    }
+//                    filterResults.values = filteredList
+//                }
+//                return filterResults
+//            }
+//
+//            override fun publishResults(constraint: CharSequence, results: FilterResults) {
+//                submitList(results.values as List<Word>)
+//            }
+//        }
+//    }
+
+    companion object {
+        private val diffUtil = object : DiffUtil.ItemCallback<Word>() {
+            // id 값만 비교
+            override fun areItemsTheSame(oldItem: Word, newItem: Word): Boolean =
+                oldItem.id == newItem.id
+
+
+            // 실제 데이터클래스 안의 컨텐츠 (프로퍼티의 값) 을 비교
+            override fun areContentsTheSame(oldItem: Word, newItem: Word): Boolean =
+                oldItem == newItem
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

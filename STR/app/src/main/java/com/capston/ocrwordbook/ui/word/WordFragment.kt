@@ -1,129 +1,87 @@
 package com.capston.ocrwordbook.ui.word
 
-import android.content.Context
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.capston.ocrwordbook.R
-import com.capston.ocrwordbook.config.BaseFragment
-import com.capston.ocrwordbook.databinding.FragmentWordBinding
-import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerItem
+import com.capston.ocrwordbook.data.Word
+import com.capston.ocrwordbook.databinding.FragmentWordsBinding
 import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerAdapter
-import com.capston.ocrwordbook.utils.WordSet
-import com.google.gson.GsonBuilder
-import org.json.JSONArray
-import org.json.JSONException
 
-class WordFragment : BaseFragment<FragmentWordBinding, WordViewModel>(R.layout.fragment_word), WordFragmentView {
 
-    private var recyclerWordList = ArrayList<WordRecyclerItem>()
-    private lateinit var recyclerWordAdapter  : WordRecyclerAdapter
+/**
+ * 저장한 단어를 리스트형태로 볼 수 있다.
+ * 짧게 누르면 웹사전 화면으로 이동한다.
+ * 길게 누르면 삭제 또는 폴더를 선택할 수 있게 해준다. ( 폴더 안의 폴더는 우선 계획 없음 )
+ */
+class WordFragment : Fragment(R.layout.fragment_words) {
+    private var binding: FragmentWordsBinding? = null
+    private lateinit var recyclerWordAdapter: WordRecyclerAdapter
 
-    override var viewModel: WordViewModel = WordViewModel()
-    override fun setViewModel() {
-        binding.viewModel = viewModel
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val fragmentWordsBinding = FragmentWordsBinding.bind(view)
+        binding = fragmentWordsBinding
+
+        initRecyclerView(fragmentWordsBinding)
+        //initSearchEditText(fragmentWordsBinding)
+
+
+        // todo DB 에 있는 데이터 불러오기
+
+    }
+
+    private fun initRecyclerView(localBinding: FragmentWordsBinding) {
+        recyclerWordAdapter = WordRecyclerAdapter(
+            onClickWord = {
+                          Toast.makeText(context, "item clicked", Toast.LENGTH_LONG).show()
+
+            },
+            onLongClickWord = {
+
+            }
+        )
+        localBinding.wordRecyclerView.apply {
+            adapter = recyclerWordAdapter
+            layoutManager = LinearLayoutManager(context)
+        }
+
+        // dummy 데이터
+        var tempList = mutableListOf<Word>()
+        ('a'..'z').forEach {
+            val str = it.toString()
+            tempList.add(Word(str,str,str,true))
+        }
+        recyclerWordAdapter.submitList(tempList)
     }
 
 
+    private fun initSearchEditText(localBinding: FragmentWordsBinding) {
+        localBinding.wordEditTextSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(charSequence: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        super.onCreateView(inflater, container, savedInstanceState)
-
-
-        //저장된 단어 복원하는 코드
-        var list = getStringArrayPref_item(context, "word_list")
-        if(list != null) {
-           for(wordSet in list) {
-               recyclerWordList.add(WordRecyclerItem(wordSet!!.recognizedWord, wordSet!!.meaning, true))
-           }
-        }
-
-        recyclerWordList.add(WordRecyclerItem("car","사과", true ))
-        recyclerWordList.add(WordRecyclerItem("banana","사과", true ))
-        recyclerWordList.add(WordRecyclerItem("apple","사과", true ))
-        recyclerWordList.add(WordRecyclerItem("zebra","사과", false ))
-        recyclerWordList.add(WordRecyclerItem("dart","사과", false ))
-        recyclerWordList.add(WordRecyclerItem("tax","사과", false ))
-        recyclerWordList.add(WordRecyclerItem("apple","사과", false ))
-
-
-        recyclerWordList.sortWith(compareBy( {it.favorite}, {it.word} ))
-        recyclerWordAdapter = WordRecyclerAdapter(context, recyclerWordList, this)
-        binding.wordRecyclerView.apply {
-            adapter = recyclerWordAdapter
-            layoutManager = GridLayoutManager(context, 1)
-        }
-
-        binding.wordSearching.addTextChangedListener (object: TextWatcher {
-            override fun beforeTextChanged(charSequence: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                //Do Nothing
-            }
             override fun onTextChanged(charSequence: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                recyclerWordAdapter?.filter?.filter(charSequence)
+                if (localBinding.wordEditTextSearch.text.isNotEmpty()) {
+                    //recyclerWordAdapter?.filter?.filter(charSequence)
+                }
             }
-            override fun afterTextChanged(charSequence: Editable?) {
-                //Do Nothing
-            }
+
+            override fun afterTextChanged(charSequence: Editable?) {}
 
         })
 
-
-
-            return binding.root
     }
 
-    fun setStringArrayPref(context: Context?, key: String?, values: ArrayList<WordSet?>) {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        val editor = prefs.edit()
-        val a = JSONArray()
-        val gson = GsonBuilder().create()
-        for (i in 0 until values.size) {
-            val string: String = gson.toJson(values[i], WordSet::class.java)
-            a.put(string)
-        }
-        if (!values.isEmpty()) {
-            editor.putString(key, a.toString())
-        } else {
-            editor.putString(key, null)
-        }
-        editor.apply()
-    }
 
-    fun getStringArrayPref_item(context: Context?, key: String?): ArrayList<WordSet?>? {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        val json = prefs.getString(key, null)
-        val OrderDatas: ArrayList<WordSet?> = ArrayList<WordSet?>()
-        val gson = GsonBuilder().create()
-        if (json != null) {
-            try {
-                val a = JSONArray(json)
-                for (i in 0 until a.length()) {
-                    val orderData: WordSet = gson.fromJson(a[i].toString(), WordSet::class.java)
-                    OrderDatas.add(orderData)
-                }
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
-        }
-        return OrderDatas
-    }
 
-    override fun onClickDialogYes(position: Int) {
-        recyclerWordAdapter.itemList.removeAt(position)
 
-        val temp = ArrayList<WordSet?>()
-        for(word in recyclerWordList){
-            temp.add(WordSet(word.word, word.meaning))
-        }
-        setStringArrayPref(context, "word_list", temp)
-        recyclerWordAdapter.notifyDataSetChanged()
-    }
+    // todo 다이얼로그 에서 삭제 ok 버튼 눌렀을 때의 로직
+
 
 }

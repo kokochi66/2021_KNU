@@ -144,7 +144,7 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
             val preview = Preview.Builder()
                     .build()
                     .also {
-                        it.setSurfaceProvider(binding.cameraPreviewView.createSurfaceProvider())
+                        it.setSurfaceProvider(binding.cameraPreviewView.surfaceProvider)
                     }
 
             //사진을 캡쳐해서 저장하기 위해 추가
