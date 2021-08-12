@@ -6,7 +6,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.capston.ocrwordbook.R
-import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerItem
 
 
 class ResultRecyclerHolder(context: Context, itemView: View)

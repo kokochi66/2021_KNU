@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<layout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -17,31 +16,76 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/search_gray_700" />
-
-        <EditText
-            android:id="@+id/word_edit_text_search"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/word_container_tool_bar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="16dp"
-            android:background="#00FFFFFF"
-            android:ems="10"
-            android:hint="단어 검색"
-            android:inputType="textPersonName"
-            android:textColor="@color/gray_700"
-            app:layout_constraintBottom_toBottomOf="@+id/imageView"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/imageView"
-            app:layout_constraintTop_toTopOf="@+id/imageView" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/word_image_search"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/search_gray_700" />
+
+            <EditText
+                android:id="@+id/word_edit_text_search"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="#00FFFFFF"
+                android:ems="10"
+                android:hint="단어 검색"
+                android:inputType="textPersonName"
+                android:textColor="@color/gray_700"
+                app:layout_constraintBottom_toBottomOf="@+id/word_image_search"
+                app:layout_constraintEnd_toStartOf="@+id/word_image_button_add_folder"
+                app:layout_constraintStart_toEndOf="@+id/word_image_search"
+                app:layout_constraintTop_toTopOf="@+id/word_image_search" />
+
+            <ImageButton
+                android:id="@+id/word_image_button_add_folder"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="16dp"
+                android:backgroundTint="@color/transparent"
+                android:src="@drawable/word_list_add_folder"
+                app:layout_constraintBottom_toBottomOf="@id/word_searching_bar"
+                app:layout_constraintEnd_toStartOf="@+id/word_image_button_test"
+                app:layout_constraintTop_toTopOf="@+id/word_image_search" />
+
+            <ImageButton
+                android:id="@+id/word_image_button_test"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:backgroundTint="@color/transparent"
+                android:src="@drawable/word_list_test"
+                android:layout_marginEnd="16dp"
+                app:layout_constraintBottom_toBottomOf="@id/word_searching_bar"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/word_image_search"/>
+
+
+            <View
+                android:id="@+id/word_searching_bar"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="4dp"
+                android:background="@color/white_text"
+                app:layout_constraintEnd_toEndOf="@+id/word_edit_text_search"
+                app:layout_constraintStart_toStartOf="@+id/word_edit_text_search"
+                app:layout_constraintTop_toBottomOf="@+id/word_edit_text_search" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/word_recycler_view"
@@ -52,17 +96,9 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/word_searching_bar" />
+            app:layout_constraintTop_toBottomOf="@+id/word_container_tool_bar" />
 
-        <View
-            android:id="@+id/word_searching_bar"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="4dp"
-            android:background="@color/white_text"
-            app:layout_constraintEnd_toEndOf="@+id/word_edit_text_search"
-            app:layout_constraintStart_toStartOf="@+id/word_edit_text_search"
-            app:layout_constraintTop_toBottomOf="@+id/word_edit_text_search" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>

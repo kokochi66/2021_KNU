@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.preference.PreferenceManager
 import android.provider.MediaStore
 import android.widget.Toast
@@ -17,6 +19,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import com.capston.ocrwordbook.R
+import com.capston.ocrwordbook.config.AppObject
+import com.capston.ocrwordbook.data.Word
+import com.capston.ocrwordbook.data.WordAppDatabase
 import com.capston.ocrwordbook.databinding.ActivityResultBinding
 import com.capston.ocrwordbook.ui.main.MainActivity
 import com.capston.ocrwordbook.ui.main.MainViewModel
@@ -52,10 +57,17 @@ class ResultActivity() : AppCompatActivity(), ResultActivityView {
     private var resultRecyclerList = ArrayList<ResultRecyclerItem>()
     private lateinit var resultRecyclerAdapter : ResultRecyclerAdapter
 
+    private lateinit var db: WordAppDatabase
+    private val handler = Handler(Looper.getMainLooper()) //메인스레드에 연결된 핸들러가 만들어진 것이다.  TODO 스레드를 코루틴으로 처리하기
+
+
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(android.R.style.Theme_NoTitleBar)
         super.onCreate(savedInstanceState)
+
+        db = AppObject.getWordAppDatabase(this)
 
         soc.on("image", onCraftImg) // image가 넘어올 경우 : oncraftImg
         soc.on("ocr", onOCRRes) // OCR 결과가 넘어올 경우 : onOCRRes
@@ -215,18 +227,24 @@ class ResultActivity() : AppCompatActivity(), ResultActivityView {
     }
 
     override fun onClickDialogYes() {
-        var list : ArrayList<WordSet?>? = getStringArrayPref_item(this, "word_list")
-        if(list == null) {
-            list = ArrayList<WordSet?>()
-        }
 
-        if(!list.contains(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))) {
-            list.add(WordSet(ResultViewModel.recognizedText.value!!, ResultViewModel.meaningText.value!!))
-            setStringArrayPref(this, "word_list", list)
-            Toast.makeText(this, ResultViewModel.recognizedText.value!!+" 저장 성공", Toast.LENGTH_LONG).show()
-        }
-        else {
-            Toast.makeText(this, "저장실패! 이미 저장된 단어입니다.", Toast.LENGTH_LONG).show()
-        }
+        val word = ResultViewModel.recognizedText.value!!
+        val meaning = ResultViewModel.meaningText.value!!
+
+        saveWordToDB(Word(word, word, meaning, false, true))
+        // TODO 중복된 저장을 하였는지 점검하고 따로 토스트를 띄워줄것
+
+
+
+    }
+
+    private fun saveWordToDB(word: Word) {
+        Thread {
+            db.wordDao().insertWord(word)
+            handler.post {
+                AppObject.showToast(this, "${word.word} 저장에 성공하였습니다.")
+            }
+        }.start()
+
     }
 }

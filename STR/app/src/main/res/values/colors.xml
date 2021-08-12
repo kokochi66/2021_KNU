@@ -17,5 +17,7 @@
     <color name="gray_700">#535353</color>
     <color name="gray_500">#7d7d7d</color>
     <color name="gray_200">#c2c2c2</color>
+    <color name="gray_100">#efefef</color>
+    <color name="transparent">#00000000</color>
 
 </resources>

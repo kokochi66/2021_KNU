@@ -15,6 +15,7 @@ import com.capston.ocrwordbook.databinding.ActivityWebBinding
 class WebActivity() : AppCompatActivity() {
     private lateinit var binding: ActivityWebBinding
     var viewModel: WebViewModel = WebViewModel()
+    var word: String? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,11 +30,10 @@ class WebActivity() : AppCompatActivity() {
         binding.webWebView.settings.loadWithOverviewMode = true
         binding.webWebView.settings.useWideViewPort = true
 
-
-
+        word = intent.getStringExtra("word") ?: "error"
 
         //binding.webWebView.webViewClient = WebViewClient()
-        binding.webWebView.loadUrl("https://www.wordreference.com/enko/" + WebViewModel.onClickWord.value)
+        binding.webWebView.loadUrl("https://www.wordreference.com/enko/$word")
 
 
 
