@@ -1,14 +1,11 @@
 package com.capston.ocrwordbook.data
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 
 @Dao
 interface FolderDao {
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFolder(folder: Folder)
 
     @Delete
@@ -16,5 +13,8 @@ interface FolderDao {
 
     @Query("SELECT * FROM folder WHERE folderId = :folderId")
     suspend fun getFolder(folderId: String): Folder
+
+    @Query("SELECT * FROM folder")
+    suspend fun getAllFolder(): List<Folder>
 
 }

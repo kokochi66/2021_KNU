@@ -101,13 +101,15 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
         AppObject.getWordAppDatabase(requireContext()).folderDao()
     }
 
-    private var currentBelongedFolderId = "Main"
+    private var currentBelongedFolderId = ROOT_FOLDER_NAME
 
-    private suspend fun getAllWordbookItems() = withContext(Dispatchers.IO) {
+    private suspend fun getAndLogAllWordbookItems() = withContext(Dispatchers.IO) {
         val words = wordbookItemDao.getAllWordbookItem()
-        Log.e("wordbookItem", "모든 word ${words.joinToString("\n")}")
-        Log.d("wordbookItem", "모든 word ${words.toString()}")
         Log.e("wordbookItem", "현재 폴더 : $currentBelongedFolderId")
+        Log.e("wordbookItem", "모든 word \n ${words.joinToString("\n")}")
+        val folders = folderDao.getAllFolder()
+        Log.e("wordbookItem", "모든 folder \n ${folders.joinToString("\n")}")
+
     }
 
 
@@ -120,32 +122,35 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
         initSearchEditText(fragmentWordsBinding)
         initAddFolderButton(fragmentWordsBinding)
 
+
+        // Root 폴더에 대한 폴더
+        launch(Dispatchers.IO) {
+            folderDao.insertFolder(
+                Folder(
+                    folderId = ROOT_FOLDER_NAME,
+                    folderName = ROOT_FOLDER_NAME,
+                    folderIds = ""
+                )
+            )
+        }
+
+
+
+        //더미 데이터
         launch(Dispatchers.IO) {
             wordbookItemDao.insertWordbookItem(
                 WordbookItem(
                     uid = currentBelongedFolderId,
                     belongedFolderId = currentBelongedFolderId,
-                    word = currentBelongedFolderId,
-                    meaning = currentBelongedFolderId,
+                    word = "apple",
+                    meaning = "사과",
                     favorite = false,
                     isWord = true,
-                    nextFolderId = currentBelongedFolderId
+                    nextFolderId = ""
                 )
             )
 
-            wordbookItemDao.insertWordbookItem(
-                WordbookItem(
-                    uid = "asdf",
-                    belongedFolderId = currentBelongedFolderId,
-                    word = "folderName",
-                    meaning = "asdf",
-                    favorite = false,
-                    isWord = false,
-                    nextFolderId = "asdf"
-                )
-            )
-
-            getAllWordbookItems()
+            getAndLogAllWordbookItems()
 
         }
 
@@ -156,7 +161,7 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
         super.onResume()
         launch(coroutineContext) {
             getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
-            getAllWordbookItems()
+            getAndLogAllWordbookItems()
         }
     }
 
@@ -221,12 +226,12 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
 
             val newFolderId = System.currentTimeMillis().toString()
             launch(Dispatchers.IO) {
-                getAllWordbookItems()
+                getAndLogAllWordbookItems()
 
                 // 현재 폴더에 폴더 추가
                 wordbookItemDao.insertWordbookItem(
                     WordbookItem(
-                        uid = System.currentTimeMillis().toString()+producedFolderName,
+                        uid = newFolderId + producedFolderName,
                         belongedFolderId = currentBelongedFolderId,
                         word = producedFolderName,
                         meaning = "",
@@ -239,7 +244,7 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
                 // 이전 폴더로 이동하는 아이템을 미리 추가
                 wordbookItemDao.insertWordbookItem(
                     WordbookItem(
-                        uid = System.currentTimeMillis().toString()+"...",
+                        uid = newFolderId + "...",
                         belongedFolderId = newFolderId,
                         word = "...",
                         meaning = "",
@@ -257,9 +262,9 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
                     )
                 )
 
-                //insertFolderIdInFolderIds(currentBelongedFolderId, newFolderId)
+                insertFolderIdInFolderIds(currentBelongedFolderId, newFolderId)
 
-                getAllWordbookItems()
+                getAndLogAllWordbookItems()
                 getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
 
             }
@@ -269,9 +274,8 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
 
     private suspend fun insertFolderIdInFolderIds(currentFolderId: String, newFolderId: String) {
         val currentFolder = folderDao.getFolder(currentFolderId)
-        folderDao.deleteFolder(currentFolder)
 
-        val updatedFolderIds = currentFolder.folderIds + ",$newFolderId"
+        val updatedFolderIds = currentFolder.folderIds + "$newFolderId,"
         currentFolder.folderIds = updatedFolderIds
 
         folderDao.insertFolder(currentFolder)
@@ -291,7 +295,8 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
                     if (isWord) {
                         deleteWordAndShowWordbookItems(wordbookItem)
                     } else {
-                        deleteFolderAndShowWordbookItems(wordbookItem.nextFolderId)
+                        deleteFolderAndShowWordbookItems(wordbookItem)
+                        deleteWordAndShowWordbookItems(wordbookItem)
                     }
                 }
             },
@@ -323,20 +328,20 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
     private suspend fun deleteWordAndShowWordbookItems(wordbookItem: WordbookItem) =
         withContext(Dispatchers.IO) {
             wordbookItemDao.deleteWordbookItem(wordbookItem)
-            //withContext(Dispatchers.Main) {
-                getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
-            //}
+            getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
         }
 
 
     // 해당 FolderId 의 Folder 의 folderIds 를 가져오고 비어있지 않다면 재귀, 비어있다면 belongedFolderId 로 단어장에서 List<WordbookItem> 삭제, Folder 삭제  -> 화면 업데이트
-    private suspend fun deleteFolderAndShowWordbookItems(folderId: String) =
+    private suspend fun deleteFolderAndShowWordbookItems(wordbookItem: WordbookItem) =
         withContext(Dispatchers.Main) {
-            deleteFolder(folderId)
+            val folderId = wordbookItem.nextFolderId
+            deleteFolders(folderId)
+            deleteFolder(wordbookItem)
             getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
         }
 
-    private suspend fun deleteFolder(folderId: String) {
+    private suspend fun deleteFolders(folderId: String) {
         withContext(Dispatchers.IO) {
             val folder = folderDao.getFolder(folderId)
             folderDao.deleteFolder(folder)
@@ -345,11 +350,18 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
                 wordbookItemDao.deleteAllBelongedWordbookItem(folderId)
             } else {
                 folder.folderIds.stringToList().forEach {
-                    deleteFolder(it)
+                    if (it.isNotEmpty()) {
+                        deleteFolders(it)
+                    }
                 }
+                wordbookItemDao.deleteAllBelongedWordbookItem(folderId)
             }
         }
     }
+    private suspend fun deleteFolder(wordbookItem: WordbookItem) = withContext(Dispatchers.IO) {
+
+    }
+
 
     // WordbookItem 의 belongedFolderId 를 UPDATE, Folder 의 folderIds 수정. 즉 폴더를 잃은 입장과 폴더가 생긴 입장 두개를 처리해줘야함 -> 화면 업데이트
     private suspend fun moveAndShowFolder(wordbookItem: WordbookItem) =
@@ -381,6 +393,10 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
     override fun onDestroy() {
         super.onDestroy()
         binding = null
+    }
+
+    companion object {
+        const val ROOT_FOLDER_NAME = "Main"
     }
 
 

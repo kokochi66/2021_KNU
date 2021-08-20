@@ -24,6 +24,9 @@ interface WordbookItemDao {
     suspend fun updateWordbookItemPosition(uid: String, nextFolderId: String)
 
 
+
+
+    // 디버그용
     @Query("SELECT * FROM wordbookitem")
     suspend fun getAllWordbookItem(): List<WordbookItem>
 
