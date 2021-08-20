@@ -1,8 +1,6 @@
 package com.capston.ocrwordbook.ui.word.recylcer
 
-import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
@@ -10,49 +8,40 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.capston.ocrwordbook.R
-import com.capston.ocrwordbook.data.Word
+import com.capston.ocrwordbook.data.WordbookItem
 import com.capston.ocrwordbook.databinding.RecyclerItemWordBinding
 
 
 class WordRecyclerAdapter(
-    private val onClickWord: (Word) -> Unit,
-    private val onLongClickWord: (Word) -> Unit
-) : ListAdapter<Word, WordRecyclerAdapter.ViewHolder>(diffUtil), Filterable {
+    private val onClickWordbookItem: (WordbookItem) -> Unit,
+    private val onLongClickWordbookItem: (WordbookItem) -> Unit
+) : ListAdapter<WordbookItem, WordRecyclerAdapter.ViewHolder>(diffUtil), Filterable {
 
-    val wordComparator = Comparator<Word> { o1, o2 ->
-        if(o1.isWord != o2.isWord) {
-            o2.isWord.compareTo(o1.isWord)
-        } else if(o1.favorite != o2.favorite) {
-            o2.favorite.compareTo(o1.favorite)
-        } else {
-            o1.word.compareTo(o2.word)
-        }
-    }
 
     inner class ViewHolder(private val binding: RecyclerItemWordBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(word: Word) {
+        fun bind(wordbookItem: WordbookItem) {
 
-            binding.recyclerItemWordTextWord.text = word.word
-            binding.recyclerItemWordTextMeaning.text = word.meaning
-            if (!word.isWord) {
+            binding.recyclerItemWordTextWord.text = wordbookItem.word
+            binding.recyclerItemWordTextMeaning.text = wordbookItem.meaning
+            if (!wordbookItem.isWord) {
                 binding.recyclerItemWordButtonFavorite.setImageResource(R.drawable.word_list_move_to_folder)
-            } else if (word.favorite) {
+            } else if (wordbookItem.favorite) {
                 binding.recyclerItemWordButtonFavorite.setImageResource(R.drawable.favorite_filled)
             } else {
                 binding.recyclerItemWordButtonFavorite.setImageResource(R.drawable.favorite_empty)
             }
 
             binding.recyclerItemWordButtonFavorite.setOnClickListener {
-                word.favorite = !word.favorite
+                wordbookItem.favorite = !wordbookItem.favorite
                 notifyDataSetChanged()
             }
 
             binding.root.setOnClickListener {
-                onClickWord(word)
+                onClickWordbookItem(wordbookItem)
             }
             binding.root.setOnLongClickListener {
-                onLongClickWord(word)
+                onLongClickWordbookItem(wordbookItem)
                 true
             }
 
@@ -78,7 +67,7 @@ class WordRecyclerAdapter(
                 val keyword = constraint.toString()
                 val filterResults = FilterResults()
                 if (keyword.isNotEmpty()) {
-                    val filteredList = mutableListOf<Word>()
+                    val filteredList = mutableListOf<WordbookItem>()
 
                     currentList.forEach {
                         if (it.word.equals(keyword, true)) {
@@ -91,20 +80,20 @@ class WordRecyclerAdapter(
             }
 
             override fun publishResults(constraint: CharSequence, results: FilterResults) {
-                submitList(results.values as List<Word>)
+                submitList(results.values as List<WordbookItem>)
             }
         }
     }
 
     companion object {
-        private val diffUtil = object : DiffUtil.ItemCallback<Word>() {
+        private val diffUtil = object : DiffUtil.ItemCallback<WordbookItem>() {
             // id 값만 비교
-            override fun areItemsTheSame(oldItem: Word, newItem: Word): Boolean =
-                oldItem.id == newItem.id
+            override fun areItemsTheSame(oldItem: WordbookItem, newItem: WordbookItem): Boolean =
+                oldItem.uid == newItem.uid
 
 
             // 실제 데이터클래스 안의 컨텐츠 (프로퍼티의 값) 을 비교
-            override fun areContentsTheSame(oldItem: Word, newItem: Word): Boolean =
+            override fun areContentsTheSame(oldItem: WordbookItem, newItem: WordbookItem): Boolean =
                 oldItem == newItem
         }
     }

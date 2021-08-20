@@ -9,9 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.preference.PreferenceManager
 import android.provider.MediaStore
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -20,7 +18,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.config.AppObject
-import com.capston.ocrwordbook.data.Word
+import com.capston.ocrwordbook.data.WordbookItem
 import com.capston.ocrwordbook.data.WordAppDatabase
 import com.capston.ocrwordbook.databinding.ActivityResultBinding
 import com.capston.ocrwordbook.ui.main.MainActivity
@@ -190,61 +188,15 @@ class ResultActivity() : AppCompatActivity(), ResultActivityView {
 
 
 
-    fun setStringArrayPref(context: Context?, key: String?, values: ArrayList<WordSet?>) {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        val editor = prefs.edit()
-        val a = JSONArray()
-        val gson = GsonBuilder().create()
-        for (i in 0 until values.size) {
-            val string: String = gson.toJson(values[i], WordSet::class.java)
-            a.put(string)
-        }
-        if (!values.isEmpty()) {
-            editor.putString(key, a.toString())
-        } else {
-            editor.putString(key, null)
-        }
-        editor.apply()
-    }
-
-    fun getStringArrayPref_item(context: Context?, key: String?): ArrayList<WordSet?>? {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        val json = prefs.getString(key, null)
-        val OrderDatas: ArrayList<WordSet?> = ArrayList<WordSet?>()
-        val gson = GsonBuilder().create()
-        if (json != null) {
-            try {
-                val a = JSONArray(json)
-                for (i in 0 until a.length()) {
-                    val orderData: WordSet = gson.fromJson(a[i].toString(), WordSet::class.java)
-                    OrderDatas.add(orderData)
-                }
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
-        }
-        return OrderDatas
-    }
-
     override fun onClickDialogYes() {
 
         val word = ResultViewModel.recognizedText.value!!
         val meaning = ResultViewModel.meaningText.value!!
 
-        saveWordToDB(Word(word, word, meaning, false, true))
-        // TODO 중복된 저장을 하였는지 점검하고 따로 토스트를 띄워줄것
-
-
-
+        // DB 에 저장장
     }
 
-    private fun saveWordToDB(word: Word) {
-        Thread {
-            db.wordDao().insertWord(word)
-            handler.post {
-                AppObject.showToast(this, "${word.word} 저장에 성공하였습니다.")
-            }
-        }.start()
 
-    }
+
+
 }

@@ -7,5 +7,8 @@
 
     <string name="dialog_adding_folder_title">폴더 추가</string>
     <string name="dialog_adding_folder_hint">폴더명을 입력해주세요</string>
+    <string name="dialog_folder_list_title">폴더 리스트</string>
+    <string name="dialog_word_list_long_click_menu_delete">단어 삭제</string>
+    <string name="dialog_word_list_long_click_menu_folder">다른 폴더로 옮기기</string>
 
 </resources>

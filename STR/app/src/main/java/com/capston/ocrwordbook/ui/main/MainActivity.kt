@@ -1,6 +1,7 @@
 package com.capston.ocrwordbook.ui.main
 
 
+import WordFragment
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -19,18 +20,19 @@ import com.capston.ocrwordbook.ui.main.MainViewModel.Companion.PICK_IMAGE
 import com.capston.ocrwordbook.ui.result.ResultActivity
 import com.capston.ocrwordbook.ui.web.WebActivity
 import com.capston.ocrwordbook.ui.web.WebViewModel
-import com.capston.ocrwordbook.ui.word.WordFragment
-import com.capston.ocrwordbook.utils.LoadingDialog
 import io.socket.client.IO
 import io.socket.client.Socket
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.io.InputStream
 import java.net.URISyntaxException
+import kotlin.coroutines.CoroutineContext
 
 @RequiresApi(Build.VERSION_CODES.O)
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CoroutineScope {
 
-
-
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main
 
     companion object {
         lateinit var mSocket: Socket
