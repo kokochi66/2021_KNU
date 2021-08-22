@@ -1,7 +1,5 @@
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -11,16 +9,16 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.capston.ocrwordbook.R
 import com.capston.ocrwordbook.config.AppObject
-import com.capston.ocrwordbook.config.AppObject.wordbookItemComparator
 import com.capston.ocrwordbook.data.Folder
+import com.capston.ocrwordbook.data.Word
 import com.capston.ocrwordbook.data.WordbookItem
 import com.capston.ocrwordbook.databinding.FragmentWordsBinding
+import com.capston.ocrwordbook.ui.dialog.FolderListDialog
 import com.capston.ocrwordbook.ui.web.WebActivity
 import com.capston.ocrwordbook.ui.word.dialog.AddFolderDialog
 import com.capston.ocrwordbook.ui.word.dialog.WordListLongClickMenu
-import com.capston.ocrwordbook.ui.word.recylcer.WordRecyclerAdapter
+import com.capston.ocrwordbook.ui.word.recylcer.WordbookItemRecyclerAdapter
 import kotlinx.coroutines.*
-import okhttp3.Dispatcher
 import kotlin.coroutines.CoroutineContext
 
 
@@ -51,38 +49,52 @@ import kotlin.coroutines.CoroutineContext
  * 폴더 선택 ( belongedFolderId 로 단어장에서 List<WordbookItem> 로드 -> 화면 업데이트 )
  * 단어 검색
  *
- * 함수 정리
- * - belongedFolderId 로 단어장에서 List<WordbookItem> 로드
- * - belongedFolderId 로 단어장에서 List<WordbookItem> 삭제
- * - WordbookItem 저장
- * - WordbookItem 삭제
- * - word 로 WordbookItem 검색
- * - Folder 저장
- * - Folder 삭제
  *
  * 시나리오 정리
- *   O   Fragment onResume -> belongedFolderId 로 단어장에서 List<WordbookItem> 로드
- *   O   Add Folder Button Click -> 폴더이름작성 다이얼로그 -> Folder 저장, WordbookItem 현재와 이전 폴더 저장 -> 화면 업데이트
- *   O   WordbookItem 중 단어 Click -> 웹뷰로 이동
- *   O   WordbookItem 중 폴더 Click -> belongedFolderId 로 단어장에서 List<WordbookItem> 로드 -> 화면 업데이트
- *   O   WordbookItem 중 단어 Long Click -> WordbookItem 삭제 or 이동 다이얼로그 -> 삭제 선택 -> WordbookItem 삭제 -> 화면 업데이트
- * WordbookItem 중 폴더 Long Click -> WordbookItem 삭제 or 이동 다이얼로그 -> 삭제 선택 -> 해당 FolderId 의 List<WordbookItem> 를 가져오고, 순회하며 폴더가 있으면 재귀, 없으면 belongedFolderId 로 단어장에서 List<WordbookItem> 삭제, Folder 삭제  -> 화면 업데이트
- * WordbookItem Long Click -> WordbookItem 삭제 or 이동 다이얼로그 -> 이동 선택 -> (WordbookItem 삭제 -> belongedFolderId 만 바꿔서 다시 WordbookItem 저장 || UPDATE -> 화면 업데이트)
+ * Fragment onResume -> currentFolderId 를 parentFolderId 로 가진  List<Folder>, List<Word> 로드
+ * Add Folder Button Click -> 폴더이름작성 다이얼로그 -> currentFolderId 를 parentFolderId 로 Folder 저장, 이전폴더로 돌아가는 폴더도 함께 저장 -> 화면 업데이트
+ * WordbookItem 중 단어 Click -> 웹뷰로 이동
+ * WordbookItem 중 폴더 Click -> folderId(uid) 로 단어장에서 List<Folder>, List<Word> 로드 -> 화면 업데이트
+ * WordbookItem 중 단어 Long Click -> 삭제 선택 -> Word 삭제 -> 화면 업데이트
+ * WordbookItem 중 폴더 Long Click -> 삭제 선택 -> 해당 FolderId 를 parentFolderId 로 가지는 Word 들 삭제, 해당 Folder 삭제  -> 해당 FolderId 를 parentFolderId 로가지는 Folder 들을 가져오고 비어있지 않다면 재귀  -> 화면 업데이트
+ * WordbookItem 중 단어 Long Click -> 이동 선택 -> 현재폴더 기준 FolderListDialog -> 폴더 선택 -> ( Word 의 parentFolderId UPDATE -> 화면 업데이트)
+ * WordbookItem 중 폴더 Long Click -> 이동 선택 -> 현재폴더 기준 FolderListDialog -> 폴더 선택 -> ( Folder 의 parentFolderId UPDATE -> 화면 업데이트)
+ *
+ * 함수 정리
+ * 리사이클러뷰 업데이트 함수
+ *      getAndShowWordbookItems(),
+ *      wordToWordbookItem(words: List<Word>): List<WordbookItem>,
+ *      folderToWordbookItem(folders: List<Folder): List<Folder>,
+ *      showWordbookItems(words: List<Word>, folders: List<Folder>)
+ * 폴더 저장 함수
+ *      makeNewFolder(folderName: String)
+ * 웹액티비티로 이동 함수
+ *      startWebActivity(word: String)
+ * 폴더 변환 함수
+ *      changeFolderForward(folderId: Long), changeFolderBackward(grandparentFolderId: Long)
+ * 단어 삭제 함수
+ *      deleteWord(word: Word)
+ * 폴더 삭제 함수
+ *      tailrec deleteFolder(folder: Folder)
+ * 단어 이동 함수
+ *      moveWord(uid: Long, destinationFolderId: Long)
+ * 폴더 이동 함수
+ *      moveWord(folderId: Long, destinationFolderId: Long)
+ *
+ *
  *
  * 추가기능 정리
  * 폴더 상관없이 전체 word 로 검색
  *
  * 정렬 기준
- * 폴더 -> 단어 -> 좋아요 -> String.compareTo()
+ * 폴더(String.compareTo()) -> 단어(좋아요 -> String.compareTo())
  *
  *
  * primaryKey 값이 중복되어서 폴더생성에 실패했었다. primaryKey 가 유일해져야한다.
  *
  * TODO 프로젝트 전체 MVVM 패턴 제대로 적용
- * TODO 아래로 스크롤 하면 검색툴바가 사라지는 애니메이션 적용
- * TODO 단어와 폴더가 같은 데이터클래스로 처리되는데 데이터클래스 이름이 Word 인 것이 이상하니 다른 이름을 사용할것
- * TODO 폴더 뒤로가기 기능 추가
- * TODO 폴더리스트 다이얼로그 추가
+ * TODO 폴더 뒤로가기 Back Button 으로도 가능하게 만들기
+ *
  */
 class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
 
@@ -92,24 +104,40 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
-    private lateinit var recyclerWordAdapter: WordRecyclerAdapter
+    private lateinit var wordbookItemRecyclerAdapter: WordbookItemRecyclerAdapter
 
-    private val wordbookItemDao by lazy {
-        AppObject.getWordAppDatabase(requireContext()).wordbookItemDao()
+    private val wordDao by lazy {
+        AppObject.getWordAppDatabase(requireContext()).wordDao()
     }
     private val folderDao by lazy {
         AppObject.getWordAppDatabase(requireContext()).folderDao()
     }
 
-    private var currentBelongedFolderId = ROOT_FOLDER_NAME
+    private var prevFolderId = ROOT_FOLDER_ID
+    private var currentFolderId = ROOT_FOLDER_ID
 
-    private suspend fun getAndLogAllWordbookItems() = withContext(Dispatchers.IO) {
-        val words = wordbookItemDao.getAllWordbookItem()
-        Log.e("wordbookItem", "현재 폴더 : $currentBelongedFolderId")
-        Log.e("wordbookItem", "모든 word \n ${words.joinToString("\n")}")
-        val folders = folderDao.getAllFolder()
-        Log.e("wordbookItem", "모든 folder \n ${folders.joinToString("\n")}")
+    private suspend fun printDB() {
+        withContext(Dispatchers.IO) {
+            Log.e("printDB", "prev : $prevFolderId")
+            Log.e("printDB", "current : $currentFolderId")
+            //val words = wordDao.getAllWord()
+            val folders = folderDao.getAllFolder()
+            withContext(Dispatchers.Main) {
+                Log.e("printDB", " \n 모든 Word ")
+                //words.forEach {
+                //    Log.e("printDB", "$it")
+                //}
+                Log.e("printDB", " \n 모든 Folder ")
+                folders.forEach {
+                    Log.e("printDB", "$it id : ${it.uid}")
+                }
+            }
+        }
+    }
 
+    private fun printCurrentPosition() {
+        Log.e("printDB", "prev : $prevFolderId")
+        Log.e("printDB", "current : $currentFolderId")
     }
 
 
@@ -117,65 +145,34 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
         super.onViewCreated(view, savedInstanceState)
         val fragmentWordsBinding = FragmentWordsBinding.bind(view)
         binding = fragmentWordsBinding
+        launch(coroutineContext) {
+            printDB()
+        }
 
         initWordbookItemRecyclerView(fragmentWordsBinding)
         initSearchEditText(fragmentWordsBinding)
         initAddFolderButton(fragmentWordsBinding)
-
-
-        // Root 폴더에 대한 폴더
-        launch(Dispatchers.IO) {
-            folderDao.insertFolder(
-                Folder(
-                    folderId = ROOT_FOLDER_NAME,
-                    folderName = ROOT_FOLDER_NAME,
-                    folderIds = ""
-                )
-            )
-        }
-
-
-
-        //더미 데이터
-        launch(Dispatchers.IO) {
-            wordbookItemDao.insertWordbookItem(
-                WordbookItem(
-                    uid = currentBelongedFolderId,
-                    belongedFolderId = currentBelongedFolderId,
-                    word = "apple",
-                    meaning = "사과",
-                    favorite = false,
-                    isWord = true,
-                    nextFolderId = ""
-                )
-            )
-
-            getAndLogAllWordbookItems()
-
-        }
-
+        initPreviousButton(fragmentWordsBinding)
+        initTestButton(fragmentWordsBinding)
 
     }
 
     override fun onResume() {
         super.onResume()
         launch(coroutineContext) {
-            getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
-            getAndLogAllWordbookItems()
+            getAndShowChildWordbookItems(currentFolderId)
         }
     }
 
+
     private fun initWordbookItemRecyclerView(localBinding: FragmentWordsBinding) {
-        recyclerWordAdapter = WordRecyclerAdapter(
+        wordbookItemRecyclerAdapter = WordbookItemRecyclerAdapter(
             onClickWordbookItem = { wordbookItem ->
                 if (wordbookItem.isWord) {
                     startWebActivity(wordbookItem.word)
                 } else {
-                    launch(coroutineContext) {
-                        currentBelongedFolderId = wordbookItem.nextFolderId
-                        getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
+                    changeFolderForward(wordbookItem.uid)
 
-                    }
                 }
             },
             onLongClickWordbookItem = { wordbookItem ->
@@ -184,10 +181,47 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
         )
 
         localBinding.wordRecyclerView.apply {
-            adapter = recyclerWordAdapter
+            adapter = wordbookItemRecyclerAdapter
             layoutManager = LinearLayoutManager(context)
         }
     }
+
+    private fun initPreviousButton(fragmentWordsBinding: FragmentWordsBinding) {
+        fragmentWordsBinding.wordImageButtonPreviousFolder.setOnClickListener {
+            if (currentFolderId == ROOT_FOLDER_ID) {
+                Toast.makeText(requireContext(), "현재 폴더가 최상단 폴더 입니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            launch(coroutineContext) {
+                withContext(Dispatchers.IO) {
+                    val grandparentFolder: Folder? = folderDao.getFolderByUid(prevFolderId)
+                    changeFolderBackward(grandparentFolder?.parentFolderId ?: ROOT_FOLDER_ID)
+                }
+            }
+
+        }
+    }
+
+
+    private fun changeFolderForward(folderId: Long) {
+        launch(coroutineContext) {
+            prevFolderId = currentFolderId
+            currentFolderId = folderId
+            getAndShowChildWordbookItems(currentFolderId)
+
+            printCurrentPosition()
+
+        }
+    }
+
+    private suspend fun changeFolderBackward(grandparentFolderId: Long) =
+        withContext(Dispatchers.IO) {
+            currentFolderId = prevFolderId
+            prevFolderId = grandparentFolderId
+            getAndShowChildWordbookItems(currentFolderId)
+
+            printCurrentPosition()
+        }
 
 
     private fun initSearchEditText(localBinding: FragmentWordsBinding) {
@@ -201,11 +235,13 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
             }
 
             override fun onTextChanged(charSequence: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (localBinding.wordEditTextSearch.text.isNotEmpty()) {
-                    // TODO 폴더 상관없이 영단어만으로 검색
-                } else {
-                    launch(coroutineContext) {
-                        getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
+                launch(coroutineContext) {
+                    if (localBinding.wordEditTextSearch.text.isNotEmpty()) {
+                        searchWords(localBinding.wordEditTextSearch.text.toString())
+                    } else {
+
+                        getAndShowChildWordbookItems(currentFolderId)
+
                     }
                 }
             }
@@ -215,76 +251,33 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
         })
     }
 
+    private suspend fun searchWords(keyword: String) = withContext(Dispatchers.IO) {
+        //val words = wordDao.searchWords(keyword)
+        //wordbookItemRecyclerAdapter.submitList(wordToWordbookItem(words)?.sortedWith(AppObject.wordbookItemComparator))
+    }
+
     private fun initAddFolderButton(localBinding: FragmentWordsBinding) {
         localBinding.wordImageButtonAddFolder.setOnClickListener {
-            showAddFolderDialog()
+            inflateAddFolderDialog()
         }
     }
 
-    private fun showAddFolderDialog() {
-        AddFolderDialog(requireContext()) { producedFolderName ->
-
-            val newFolderId = System.currentTimeMillis().toString()
-            launch(Dispatchers.IO) {
-                getAndLogAllWordbookItems()
-
-                // 현재 폴더에 폴더 추가
-                wordbookItemDao.insertWordbookItem(
-                    WordbookItem(
-                        uid = newFolderId + producedFolderName,
-                        belongedFolderId = currentBelongedFolderId,
-                        word = producedFolderName,
-                        meaning = "",
-                        favorite = false,
-                        isWord = false,
-                        nextFolderId = newFolderId
-                    )
-                )
-
-                // 이전 폴더로 이동하는 아이템을 미리 추가
-                wordbookItemDao.insertWordbookItem(
-                    WordbookItem(
-                        uid = newFolderId + "...",
-                        belongedFolderId = newFolderId,
-                        word = "...",
-                        meaning = "",
-                        favorite = false,
-                        isWord = false,
-                        nextFolderId = currentBelongedFolderId
-                    )
-                )
-
-                folderDao.insertFolder(
-                    Folder(
-                        folderId = newFolderId,
-                        folderName = producedFolderName,
-                        folderIds = ""
-                    )
-                )
-
-                insertFolderIdInFolderIds(currentBelongedFolderId, newFolderId)
-
-                getAndLogAllWordbookItems()
-                getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
-
+    private fun inflateAddFolderDialog() {
+        AddFolderDialog(requireContext()) { newFolderName ->
+            launch(coroutineContext) {
+                val newFolder = Folder(currentFolderId, newFolderName)
+                makeNewFolder(newFolder)
             }
 
         }.show()
     }
 
-    private suspend fun insertFolderIdInFolderIds(currentFolderId: String, newFolderId: String) {
-        val currentFolder = folderDao.getFolder(currentFolderId)
-
-        val updatedFolderIds = currentFolder.folderIds + "$newFolderId,"
-        currentFolder.folderIds = updatedFolderIds
-
-        folderDao.insertFolder(currentFolder)
+    private suspend fun makeNewFolder(newFolder: Folder) = withContext(Dispatchers.IO) {
+        // 현재 폴더에 폴더 추가
+        folderDao.insertFolder(newFolder)
+        getAndShowChildWordbookItems(currentFolderId)
     }
 
-
-    private suspend fun deleteFolderIdInFolderIds(currentFolderId: String, newFolderId: String) {
-
-    }
 
     private fun showDeleteOrMoveMenuDialog(wordbookItem: WordbookItem) {
         val isWord = wordbookItem.isWord
@@ -293,95 +286,167 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
             onClickDeleteButton = {
                 launch(coroutineContext) {
                     if (isWord) {
-                        deleteWordAndShowWordbookItems(wordbookItem)
+                        deleteWord(wordbookItem.uid)
                     } else {
-                        deleteFolderAndShowWordbookItems(wordbookItem)
-                        deleteWordAndShowWordbookItems(wordbookItem)
+                        deleteFolder(wordbookItem.uid)
                     }
+                    getAndShowChildWordbookItems(currentFolderId)
+                    printDB()
                 }
             },
             onClickMoveFolderButton = {
-                // 폴더 리스트 다이얼로그
+                launch(coroutineContext) {
+                    withContext(Dispatchers.IO) {
+                        val folders =
+                            folderDao.getChildFolders(currentFolderId) ?: return@withContext
+                        withContext(Dispatchers.Main) {
+                            showFolderListDialog(wordbookItem, folders)
+                        }
+                    }
+                }
+
+
             }
         ).show()
     }
 
-    private fun initTestButton(localBinding: FragmentWordsBinding) {
-        // TODO 테스트 기능 추가
-
-    }
-
-    private suspend fun getAndShowAllBelongedWordbookItem(belongedFolderId: String) =
-        withContext(Dispatchers.IO) {
-            val wordbookItems = wordbookItemDao.getAllBelongedWordbookItem(belongedFolderId)
-            withContext(Dispatchers.Main) {
-                currentBelongedFolderId = belongedFolderId
-                showAllWordsToRecyclerView(wordbookItems.sortedWith(wordbookItemComparator))
-            }
-        }
-
-
-    private fun showAllWordsToRecyclerView(wordbookItems: List<WordbookItem>) =
-        recyclerWordAdapter.submitList(wordbookItems)
-
-
-    private suspend fun deleteWordAndShowWordbookItems(wordbookItem: WordbookItem) =
-        withContext(Dispatchers.IO) {
-            wordbookItemDao.deleteWordbookItem(wordbookItem)
-            getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
-        }
-
-
-    // 해당 FolderId 의 Folder 의 folderIds 를 가져오고 비어있지 않다면 재귀, 비어있다면 belongedFolderId 로 단어장에서 List<WordbookItem> 삭제, Folder 삭제  -> 화면 업데이트
-    private suspend fun deleteFolderAndShowWordbookItems(wordbookItem: WordbookItem) =
-        withContext(Dispatchers.Main) {
-            val folderId = wordbookItem.nextFolderId
-            deleteFolders(folderId)
-            deleteFolder(wordbookItem)
-            getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
-        }
-
-    private suspend fun deleteFolders(folderId: String) {
-        withContext(Dispatchers.IO) {
-            val folder = folderDao.getFolder(folderId)
-            folderDao.deleteFolder(folder)
-
-            if (folder.folderIds.isEmpty()) {
-                wordbookItemDao.deleteAllBelongedWordbookItem(folderId)
-            } else {
-                folder.folderIds.stringToList().forEach {
-                    if (it.isNotEmpty()) {
-                        deleteFolders(it)
+    private suspend fun showFolderListDialog(wordbookItem: WordbookItem, folders: List<Folder>) {
+        FolderListDialog(
+            requireContext(),
+            folders,
+            onClickFolder = { folder ->
+                launch(coroutineContext) {
+                    if (wordbookItem.isWord) {
+                        moveWord(wordbookItem.uid, folder.uid)
+                    } else {
+                        moveFolder(wordbookItem.uid, folder.uid)
                     }
+                    getAndShowChildWordbookItems(currentFolderId)
+                    printDB()
                 }
-                wordbookItemDao.deleteAllBelongedWordbookItem(folderId)
+            }
+        ).show()
+
+    }
+
+
+    private suspend fun deleteWord(uid: Long) = withContext(Dispatchers.IO) {
+        wordDao.deleteWordByUid(uid)
+    }
+
+    /**
+     * @param : 삭제하려고하는 폴더가 인자로 들어온다.
+     * 인자를 uid 로 가지는 폴더와 인자를 parentFolderId 로 가지는 Word 를 삭제한다.
+     * 인자를 parentFolderId 로 가지는 모든 폴더(children)를 불러오고
+     * children 이 있으면 재귀한다.
+     */
+    private suspend fun deleteFolder(folderId: Long) {
+        withContext(Dispatchers.IO) {
+
+            folderDao.deleteFolderByUid(folderId)
+            wordDao.deleteChildWordsByUid(folderId)
+            val childFolders = folderDao.getChildFolders(folderId) ?: return@withContext
+
+            childFolders?.forEach {
+                deleteFolder(it.uid)
             }
         }
     }
-    private suspend fun deleteFolder(wordbookItem: WordbookItem) = withContext(Dispatchers.IO) {
+
+    private suspend fun moveWord(uid: Long, destinationFolderId: Long) =
+        withContext(Dispatchers.IO) {
+            val word = wordDao.getWordByUid(uid)
+            word.parentFolderId = destinationFolderId
+            wordDao.insertWord(word)
+        }
+
+    private suspend fun moveFolder(folderId: Long, destinationFolderId: Long) =
+        withContext(Dispatchers.IO) {
+            val folder = folderDao.getFolderByUid(folderId)
+            folder.parentFolderId = destinationFolderId
+            folderDao.insertFolder(folder)
+        }
+
+
+    // todo 단어테스트 기능 추가
+    private fun initTestButton(localBinding: FragmentWordsBinding) {
+        localBinding.wordImageButtonTest.setOnClickListener {
+            launch(coroutineContext) {
+                withContext(Dispatchers.IO) {
+                    wordDao.insertWord(
+                        Word(
+                            parentFolderId = currentFolderId,
+                            word = "apple",
+                            meaning = "사과"
+                        )
+                    )
+                    wordDao.insertWord(
+                        Word(
+                            parentFolderId = currentFolderId,
+                            word = "banana",
+                            meaning = "바나나"
+                        )
+                    )
+                    wordDao.insertWord(
+                        Word(
+                            parentFolderId = currentFolderId,
+                            word = "cat",
+                            meaning = "고양이"
+                        )
+                    )
+                    wordDao.insertWord(
+                        Word(
+                            parentFolderId = currentFolderId,
+                            word = "shit",
+                            meaning = "쉿"
+                        )
+                    )
+
+                    getAndShowChildWordbookItems(currentFolderId)
+                }
+            }
+        }
+
 
     }
 
-
-    // WordbookItem 의 belongedFolderId 를 UPDATE, Folder 의 folderIds 수정. 즉 폴더를 잃은 입장과 폴더가 생긴 입장 두개를 처리해줘야함 -> 화면 업데이트
-    private suspend fun moveAndShowFolder(wordbookItem: WordbookItem) =
+    private suspend fun getAndShowChildWordbookItems(parentFolderId: Long) =
         withContext(Dispatchers.IO) {
-
+            val folders = folderDao.getChildFolders(parentFolderId)
+            val words = wordDao.getChildWords(parentFolderId)
+            showWordbookItems(words, folders)
         }
 
-
-    // WordbookItem 의 belongedFolderId 를 UPDATE -> 화면 업데이트
-    private suspend fun moveAndShowWord(wordbookItem: WordbookItem, nextFolderId: String) =
-        withContext(Dispatchers.IO) {
-            wordbookItemDao.updateWordbookItemPosition(
-                uid = wordbookItem.uid,
-                nextFolderId = nextFolderId
+    private fun wordToWordbookItem(words: List<Word>?): List<WordbookItem>? =
+        words?.map {
+            WordbookItem(
+                uid = it.uid,
+                parentFolderId = it.parentFolderId,
+                word = it.word,
+                meaning = it.meaning
             )
-            getAndShowAllBelongedWordbookItem(currentBelongedFolderId)
         }
 
-    private fun String.stringToList(): List<String> = this.split(",")
-    private fun List<String>.listToString(): String = this.joinToString(",") { it }
+
+    private fun folderToWordbookItem(folders: List<Folder>?): List<WordbookItem>? =
+        folders?.map {
+            WordbookItem(
+                uid = it.uid,
+                parentFolderId = it.parentFolderId,
+                word = it.folderName,
+                isWord = false
+            )
+        }
+
+
+    private suspend fun showWordbookItems(words: List<Word>?, folders: List<Folder>?) {
+        withContext(Dispatchers.Main) {
+            val wordItems = wordToWordbookItem(words) ?: listOf<WordbookItem>()
+            val folderItems = folderToWordbookItem(folders) ?: listOf<WordbookItem>()
+            val list = wordItems + folderItems
+            wordbookItemRecyclerAdapter.submitList(list.sortedWith(AppObject.wordbookItemComparator))
+        }
+    }
 
 
     private fun startWebActivity(word: String) {
@@ -396,10 +461,8 @@ class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
     }
 
     companion object {
-        const val ROOT_FOLDER_NAME = "Main"
+        const val ROOT_FOLDER_ID = 960529L
     }
-
-
 
 
 }

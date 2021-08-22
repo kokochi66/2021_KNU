@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/11260/AndroidStudioProjects/2021_KNU/STR/app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="..\:/Users/11260/AndroidStudioProjects/2021_KNU/STR/app/src/main/res/layout/dialog_adding_folder.xml" value="0.31296296296296294" />
         <entry key="..\:/Users/11260/AndroidStudioProjects/2021_KNU/STR/app/src/main/res/layout/dialog_confirmation.xml" value="0.36614583333333334" />
         <entry key="..\:/Users/11260/AndroidStudioProjects/2021_KNU/STR/app/src/main/res/layout/dialog_description.xml" value="0.36614583333333334" />
@@ -11,6 +12,7 @@
         <entry key="..\:/Users/11260/AndroidStudioProjects/2021_KNU/STR/app/src/main/res/layout/dialog_loading.xml" value="0.36614583333333334" />
         <entry key="..\:/Users/11260/AndroidStudioProjects/2021_KNU/STR/app/src/main/res/layout/dialog_word_list_long_click_menu.xml" value="0.36614583333333334" />
         <entry key="..\:/Users/11260/AndroidStudioProjects/2021_KNU/STR/app/src/main/res/layout/fragment_words.xml" value="0.33" />
+        <entry key="..\:/Users/11260/AndroidStudioProjects/2021_KNU/STR/app/src/main/res/layout/recycler_item_folder.xml" value="0.36614583333333334" />
         <entry key="..\:/Users/11260/AndroidStudioProjects/2021_KNU/STR/app/src/main/res/layout/recycler_item_result.xml" value="0.20364583333333333" />
         <entry key="..\:/Users/11260/AndroidStudioProjects/2021_KNU/STR/app/src/main/res/layout/recycler_item_word.xml" value="0.20364583333333333" />
       </map>

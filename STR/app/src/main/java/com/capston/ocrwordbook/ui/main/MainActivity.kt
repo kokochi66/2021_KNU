@@ -58,15 +58,46 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.viewModel = viewModel
 
-        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment()).commit()
 
-        binding.mainLinearOcr.setOnClickListener {
-            SwitchingOcr()
-        }
-        binding.mainLinearWords.setOnClickListener {
-            SwitchingWords()
-        }
+        initViews()
+        initObservers()
 
+    }
+
+    private fun initViews() {
+
+        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment())
+            .commit()
+
+        binding.mainImageOcr.setOnClickListener {
+            ReplaceToCameraFragment()
+        }
+        binding.mainImageWords.setOnClickListener {
+            ReplaceToWordbookFragment()
+        }
+    }
+
+
+    private fun ReplaceToCameraFragment() {
+        binding.mainImageWords.setImageResource(R.drawable.word_list_gray_700)
+        binding.mainImageOcr.setImageResource(R.drawable.add_photo_white)
+
+        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment())
+            .commit()
+    }
+
+
+    private fun ReplaceToWordbookFragment() {
+        binding.mainImageOcr.setImageResource(R.drawable.add_photo_gray_700)
+        binding.mainImageWords.setImageResource(R.drawable.word_list_white)
+
+        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, WordFragment())
+            .commit()
+    }
+
+
+
+    private fun initObservers() {
         //카메라 화면에서 사진 찍고 저장에 성공하거나 or 갤러리화면에서 사진 선택 성공시 호출 -> 결과화면으로 이동
         MainViewModel.onGetPicture.observe({ lifecycle }) {
             val intent = Intent(this, ResultActivity::class.java)
@@ -87,35 +118,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             startActivity(intent)
         }
 
-
     }
 
-
-    fun SwitchingOcr() {
-       binding.mainBarWords.visibility = View.INVISIBLE
-       binding.mainImageWords.setImageResource(R.drawable.word_list_gray_700)
-       binding.mainTextWords.setTextColor(getResources().getColor(R.color.gray_700, null))
-
-       binding.mainBarOcr.visibility = View.VISIBLE
-       binding.mainImageOcr.setImageResource(R.drawable.add_photo_white)
-       binding.mainTextOcr.setTextColor(resources.getColor(R.color.white_text, null))
-
-
-        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, CameraFragment()).commit()
-    }
-
-
-    fun SwitchingWords() {
-        binding.mainBarOcr.visibility = View.INVISIBLE
-        binding.mainImageOcr.setImageResource(R.drawable.add_photo_gray_700)
-        binding.mainTextOcr.setTextColor(getResources().getColor(R.color.gray_700, null))
-
-        binding.mainBarWords.visibility = View.VISIBLE
-        binding.mainImageWords.setImageResource(R.drawable.word_list_white)
-        binding.mainTextWords.setTextColor(resources.getColor(R.color.white_text, null))
-
-        this.supportFragmentManager.beginTransaction().replace(R.id.main_fragment, WordFragment()).commit()
-    }
 
     //갤러리 관련 코드
     //갤러리에서 이미지 불러온 후 행동
@@ -126,22 +130,22 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
         // Check which request we're responding to
         //if (requestCode == MainViewModel.PICK_IMAGE) {
-            // Make sure the request was successful
-            Log.d("gallery", "onActivityResult 도달2")
-            if (resultCode == RESULT_OK) {
-                Log.d("gallery", "onActivityResult 도달3")
-                try {
-                    // 선택한 이미지에서 비트맵 생성
-                    val `in`: InputStream? = contentResolver.openInputStream(data?.data!!)
-                    val img = BitmapFactory.decodeStream(`in`)
-                    `in`?.close()
-                    // Result 화면으로 이동하기위한 코드
-                    Log.d("gallery", "onActivityResult 도달4")
-                    MainViewModel.onGetPicture.postValue(data?.data)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+        // Make sure the request was successful
+        Log.d("gallery", "onActivityResult 도달2")
+        if (resultCode == RESULT_OK) {
+            Log.d("gallery", "onActivityResult 도달3")
+            try {
+                // 선택한 이미지에서 비트맵 생성
+                val `in`: InputStream? = contentResolver.openInputStream(data?.data!!)
+                val img = BitmapFactory.decodeStream(`in`)
+                `in`?.close()
+                // Result 화면으로 이동하기위한 코드
+                Log.d("gallery", "onActivityResult 도달4")
+                MainViewModel.onGetPicture.postValue(data?.data)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
+        }
         //}
     }
 

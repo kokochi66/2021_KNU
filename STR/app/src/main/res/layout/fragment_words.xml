@@ -25,12 +25,25 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
-                android:id="@+id/word_image_search"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:id="@+id/word_image_button_previous_folder"
+                android:src="@drawable/ic_arrow_back"
+                android:foregroundGravity="center"
+                />
+
+            <ImageView
+                android:id="@+id/word_image_search"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toEndOf="@id/word_image_button_previous_folder"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/search_gray_700" />
 
@@ -50,10 +63,10 @@
                 app:layout_constraintStart_toEndOf="@+id/word_image_search"
                 app:layout_constraintTop_toTopOf="@+id/word_image_search" />
 
-            <ImageButton
+            <ImageView
                 android:id="@+id/word_image_button_add_folder"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_marginEnd="16dp"
                 android:backgroundTint="@color/transparent"
                 android:src="@drawable/word_list_add_folder"
@@ -61,10 +74,10 @@
                 app:layout_constraintEnd_toStartOf="@+id/word_image_button_test"
                 app:layout_constraintTop_toTopOf="@+id/word_image_search" />
 
-            <ImageButton
+            <ImageView
                 android:id="@+id/word_image_button_test"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:backgroundTint="@color/transparent"
                 android:src="@drawable/word_list_test"
                 android:layout_marginEnd="16dp"

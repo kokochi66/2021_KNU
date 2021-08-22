@@ -3,6 +3,8 @@ package com.capston.ocrwordbook.config
 import android.content.Context
 import android.widget.Toast
 import androidx.room.Room
+import com.capston.ocrwordbook.data.Folder
+import com.capston.ocrwordbook.data.Word
 import com.capston.ocrwordbook.data.WordAppDatabase
 import com.capston.ocrwordbook.data.WordbookItem
 

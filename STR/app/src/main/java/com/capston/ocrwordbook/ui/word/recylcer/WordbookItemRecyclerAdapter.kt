@@ -12,10 +12,10 @@ import com.capston.ocrwordbook.data.WordbookItem
 import com.capston.ocrwordbook.databinding.RecyclerItemWordBinding
 
 
-class WordRecyclerAdapter(
+class WordbookItemRecyclerAdapter(
     private val onClickWordbookItem: (WordbookItem) -> Unit,
     private val onLongClickWordbookItem: (WordbookItem) -> Unit
-) : ListAdapter<WordbookItem, WordRecyclerAdapter.ViewHolder>(diffUtil), Filterable {
+) : ListAdapter<WordbookItem, WordbookItemRecyclerAdapter.ViewHolder>(diffUtil), Filterable {
 
 
     inner class ViewHolder(private val binding: RecyclerItemWordBinding) :

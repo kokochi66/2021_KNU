@@ -20,7 +20,7 @@ class ConfirmationDeleteDialog(context : Context, val recognizedWord : String, v
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         binding = DialogConfirmationBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setCanceledOnTouchOutside(false)
+        setCanceledOnTouchOutside(true)
 
         val window: Window? = getWindow()
         if (window != null) {
