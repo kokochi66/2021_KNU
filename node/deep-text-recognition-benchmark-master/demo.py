@@ -15,6 +15,7 @@ from model import Model
 
 # translator
 from google_trans_new import google_translator
+
 trans=google_translator()
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -50,7 +51,7 @@ def demo(opt):
     model = torch.nn.DataParallel(model).to(device)
 
     # load model
-    #print('loading pretrained model from %s' % opt.saved_model)
+    # print('loading pretrained model from %s' % opt.saved_model)
     model.load_state_dict(torch.load(opt.saved_model, map_location=device))
 
     # prepare data. two demo images from https://github.com/bgshih/crnn#run-demo
@@ -89,12 +90,12 @@ def demo(opt):
                 preds_str = converter.decode(preds_index, length_for_pred)
 
 
-            #log = open(f'../result.txt', 'w', encoding='utf8')
-            #dashed_line = '-' * 80
-            #head = f'{"image_path":25s}\t{"predicted_labels":25s}\tconfidence score'
+            # log = open(f'../result.txt', 'w', encoding='utf8')
+            dashed_line = '-' * 80
+            head = f'{"image_path":25s}\t{"predicted_labels":25s}\tconfidence score'
             
-            #print(f'{dashed_line}\n{head}\n{dashed_line}')
-            #log.write(f'{dashed_line}\n{head}\n{dashed_line}\n')
+            print(f'{dashed_line}\n{head}\n{dashed_line}')
+            # log.write(f'{dashed_line}\n{head}\n{dashed_line}\n')
 
             preds_prob = F.softmax(preds, dim=2)
             preds_max_prob, _ = preds_prob.max(dim=2)
@@ -107,17 +108,17 @@ def demo(opt):
                 # calculate confidence score (= multiply of pred_max_prob)
                 confidence_score = pred_max_prob.cumprod(dim=0)[-1]
 
-                #print(f'{img_name:25s}\t{pred:25s}\t{confidence_score:0.4f}')
+                print(f'{img_name:25s}\t{pred:25s}\t{confidence_score:0.4f}')
                 #log.write(f'{img_name:25s}\t{pred:25s}\t{confidence_score:0.4f}\n')
                 
                 #result file 작성 : base64 인코딩 문자열, OCR 결과, 단어 번역
-                translated_text = trans.translate(pred, lang_src='en', lang_tgt='ko')
+                # translated_text = trans.translate(pred, lang_src='en', lang_tgt='ko')
                 enc_image = fileToBase64(img_name)
                 
                 
                 #log.write(f'{enc_image}:{pred}:{translated_text}\n')
                 
-                data['total'].append({"base64": enc_image, "word": pred, "trans": translated_text})
+                data['total'].append({"base64": enc_image, "word": pred})
                 
             #log.close()
             with open('../result.json', 'w', encoding='utf-8') as outfile:
@@ -125,7 +126,8 @@ def demo(opt):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--image_folder', default='../img/cropped', help='path to image_folder which contains text images')
+
+    parser.add_argument('--image_folder', default='../img/cropped/', help='path to image_folder which contains text images')
     parser.add_argument('--workers', type=int, help='number of data loading workers', default=4)
     parser.add_argument('--batch_size', type=int, default=192, help='input batch size')
     parser.add_argument('--saved_model', default='TPS-ResNet-BiLSTM-Attn-case-sensitive.pth', help="path to saved_model to evaluation")
