@@ -91,9 +91,11 @@ import kotlin.coroutines.CoroutineContext
  *
  *
  * primaryKey 값이 중복되어서 폴더생성에 실패했었다. primaryKey 가 유일해져야한다.
- *
- * TODO 프로젝트 전체 MVVM 패턴 제대로 적용
- * TODO 폴더 뒤로가기 Back Button 으로도 가능하게 만들기
+
+ * TODO 1. 폴더 뒤로가기 Back Button 으로도 가능하게 하기
+ * TODO 2. 검색 기능 구현
+ * TODO 3. ResultActivity 에서 단어 추가하는 기능 추가
+ * TODO 4. 단어테스트 기능 추가
  *
  */
 class WordFragment : Fragment(R.layout.fragment_words), CoroutineScope {
