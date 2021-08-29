@@ -127,7 +127,7 @@ class CameraFragment : BaseFragment<FragmentCameraBinding, CameraViewModel>(R.la
                 val savedUri = Uri.fromFile(photoFile)
                 val msg = "사진 저장 완료 \n($savedUri)"
                 //Toast.makeText(context, savedUri.toString(), Toast.LENGTH_SHORT).show()
-                MainViewModel.onGetPicture.value=savedUri
+                MainViewModel.onCropPicture.value=savedUri
                 Log.d(TAG, msg)
             }
         })

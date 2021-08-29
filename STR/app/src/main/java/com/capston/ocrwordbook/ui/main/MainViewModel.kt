@@ -18,6 +18,7 @@ import java.net.URI
 class MainViewModel() : ViewModel() {
 
     companion object {
+        var onCropPicture : MutableLiveData<Uri> = MutableLiveData<Uri>()
         var onGetPicture : MutableLiveData<Uri> = MutableLiveData<Uri>()
         var onClickGalleryButton : MutableLiveData<Boolean> = MutableLiveData<Boolean>()
         val PICK_IMAGE = 0

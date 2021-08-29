@@ -19,6 +19,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OcrWordBook"
         android:usesCleartextTraffic="true">
+        <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat"/>
         <activity
             android:name=".ui.test.TestActivity"
             android:exported="true" />
