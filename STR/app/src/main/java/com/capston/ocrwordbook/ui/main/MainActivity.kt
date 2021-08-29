@@ -111,7 +111,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
         //카메라로 찍은 사진
         MainViewModel.onCropPicture.observe({ lifecycle }) {
-            cropImage(it)
+            // 서버 연결 확인
+            if (mSocket.connected() == false) {
+                Toast.makeText(this, "Server is not connected", Toast.LENGTH_SHORT).show()
+            }
+
+            else
+                cropImage(it)
         }
 
         //카메라 화면에서 갤러리 버튼을 누르면 호출 -> 갤러리화면으로 이동
